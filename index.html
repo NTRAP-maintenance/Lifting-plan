@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lifting Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky app bar with section chips; form on the left, live verdict panel (gauge, crane diagram, checks) on the right; stacks to one column on phones with the verdict first */
+:root{
+  --bg:#ECEFF3;
+  --surface:#FFFFFF;
+  --surface-2:#F5F7F9;
+  --ink:#121B24;
+  --muted:#5A6776;
+  --line:#D5DCE3;
+  --accent:#2453D4;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E5ECFC;
+  --crane:#F2B01E;
+  --crane-dk:#C98A00;
+  --steel:#3A4654;
+  --glass:#BCD2EC;
+  --ok:#12845A;  --ok-soft:#DFF3E9;
+  --warn:#B86200; --warn-soft:#FBEBD3;
+  --bad:#C92D2D; --bad-soft:#FAE1DF;
+  --idle:#6B7887; --idle-soft:#E9EDF1;
+  --font-display:"Bai Jamjuree","IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans Thai","Noto Sans Thai","Leelawadee UI",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --radius:16px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1016; --surface:#131A22; --surface-2:#19222C; --ink:#E6ECF2; --muted:#93A2B2; --line:#26313D;
+    --accent:#7FA2FF; --accent-ink:#0B1016; --accent-soft:#1A2743;
+    --crane:#F2B01E; --crane-dk:#B57D00; --steel:#5B6878; --glass:#2D4766;
+    --ok:#3CC48A; --ok-soft:#0F2A1F; --warn:#F2A33A; --warn-soft:#2E2210; --bad:#FF6B63; --bad-soft:#341617;
+    --idle:#8D9AA9; --idle-soft:#1E2731;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1016; --surface:#131A22; --surface-2:#19222C; --ink:#E6ECF2; --muted:#93A2B2; --line:#26313D;
+  --accent:#7FA2FF; --accent-ink:#0B1016; --accent-soft:#1A2743;
+  --crane:#F2B01E; --crane-dk:#B57D00; --steel:#5B6878; --glass:#2D4766;
+  --ok:#3CC48A; --ok-soft:#0F2A1F; --warn:#F2A33A; --warn-soft:#2E2210; --bad:#FF6B63; --bad-soft:#341617;
+  --idle:#8D9AA9; --idle-soft:#1E2731;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;line-height:1.25}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+[hidden]{display:none !important}
+
+/* ---------- App bar ---------- */
+.appbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
+.appbar-row{max-width:1260px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;margin-right:auto}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:#16212C;color:#F2B01E;display:grid;place-items:center;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.brand-mark svg{width:20px;height:20px}
+.brand-text{min-width:0}
+.brand-name{display:block;font-family:var(--font-display);font-weight:700;font-size:17px;line-height:1.15;white-space:nowrap}
+.brand-doc{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-family:var(--font-mono);font-weight:600;font-size:12.5px;white-space:nowrap;background:var(--idle-soft);color:var(--idle)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 22%,transparent)}
+[data-tone="ok"].pill{background:var(--ok-soft);color:var(--ok)}
+[data-tone="warn"].pill{background:var(--warn-soft);color:var(--warn)}
+[data-tone="bad"].pill{background:var(--bad-soft);color:var(--bad)}
+.actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap;transition:border-color .15s,background .15s,transform .1s}
+.btn:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.6;cursor:progress}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{background:color-mix(in srgb,var(--accent) 88%,var(--ink))}
+.btn svg{width:18px;height:18px;flex:none}
+.btn.sm{height:34px;padding:0 12px;font-size:13.5px}
+@media (max-width:700px){.actions .btn .lbl{display:none}.actions .btn{width:38px;padding:0}}
+@media (max-width:420px){.appbar-row{gap:8px}.brand-mark{width:32px;height:32px}.pill{padding:5px 10px;font-size:12px}.brand-doc{display:none}.brand-name{font-size:15px}}
+@media (max-width:440px){.brand-text{display:none}}
+
+.stepnav{max-width:1260px;margin:0 auto;padding:0 16px 10px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.stepnav::-webkit-scrollbar{display:none}
+.step{flex:none;display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--muted);transition:border-color .15s,color .15s,background .15s}
+.step .sn{width:22px;height:22px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--ink)}
+.step .sd{width:7px;height:7px;border-radius:50%;background:var(--idle)}
+.step .sd[data-tone="ok"]{background:var(--ok)}
+.step .sd[data-tone="warn"]{background:var(--warn)}
+.step .sd[data-tone="bad"]{background:var(--bad)}
+.step[aria-current="true"]{color:var(--ink);border-color:var(--ink)}
+.step[aria-current="true"] .sn{background:var(--ink);color:var(--surface)}
+
+/* ---------- Layout ---------- */
+.layout{max-width:1260px;margin:0 auto;padding:20px 16px 56px;display:grid;grid-template-columns:minmax(0,1fr) 410px;grid-template-areas:"form panel";gap:24px;align-items:start}
+.form{grid-area:form;display:flex;flex-direction:column;gap:18px;min-width:0}
+.panel > *{flex-shrink:0}
+.panel{grid-area:panel;position:sticky;top:var(--hdr-h,118px);display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - var(--hdr-h,118px) - 12px);overflow:auto;padding:0 2px 8px;scrollbar-width:thin}
+@media (max-width:980px){
+  .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"panel" "form";gap:18px}
+  .panel{position:static;max-height:none;overflow:visible;padding:0}
+}
+
+/* ---------- Panel ---------- */
+.verdict{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px 18px 24px;overflow:hidden;display:flex;flex-direction:column;gap:6px}
+.verdict::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--idle)}
+.verdict[data-tone="ok"]::before{background:var(--ok)}
+.verdict[data-tone="warn"]::before{background:var(--warn)}
+.verdict[data-tone="bad"]::before{background:var(--bad)}
+.verdict-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.eyebrow{font-size:12.5px;color:var(--muted);font-weight:500;margin-right:auto}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--idle-soft);color:var(--idle);white-space:nowrap}
+.chip[data-tone="ok"]{background:var(--ok-soft);color:var(--ok)}
+.chip[data-tone="warn"]{background:var(--warn-soft);color:var(--warn)}
+.chip[data-tone="bad"]{background:var(--bad-soft);color:var(--bad)}
+.verdict-title{font-size:30px;font-weight:700;line-height:1.15;color:var(--idle)}
+.verdict[data-tone="ok"] .verdict-title{color:var(--ok)}
+.verdict[data-tone="warn"] .verdict-title{color:var(--warn)}
+.verdict[data-tone="bad"] .verdict-title{color:var(--bad)}
+.verdict-sub{margin:0;color:var(--ink);font-size:14px}
+.reasons{list-style:none;margin:6px 0 0;padding:10px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.reasons li{display:flex;gap:9px;align-items:baseline}
+.reasons .dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--idle);transform:translateY(-1px)}
+.reasons li[data-tone="ok"] .dot{background:var(--ok)}
+.reasons li[data-tone="warn"] .dot{background:var(--warn)}
+.reasons li[data-tone="bad"] .dot{background:var(--bad)}
+
+.instrument{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.gauge{width:100%;max-width:300px;margin:0 auto;display:block}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
+.kpi{background:var(--surface-2);border-radius:12px;padding:10px 12px;min-width:0}
+.kpi dt{font-size:12px;color:var(--muted)}
+.kpi dd{margin:0;font-family:var(--font-mono);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi dd small{font-size:12.5px;color:var(--muted);font-weight:500;margin-left:3px}
+
+.diagram-card{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;display:flex;flex-direction:column;gap:6px}
+.diagram-card .hd{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:2px 10px;padding:2px 4px 0;font-size:13px;font-weight:600}
+.diagram-card .hd b{white-space:nowrap}
+.diagram-card .hd span{font-weight:500;color:var(--muted);font-size:12px}
+.diagram-card svg{display:block;width:100%;height:auto}
+.diagram-card figcaption{font-size:12px;color:var(--muted);padding:0 4px}
+
+.checks{list-style:none;margin:0;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column}
+.checks li{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:9px 10px;border-radius:10px}
+.checks li + li{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.checks .dot{width:9px;height:9px;border-radius:50%;background:var(--idle);grid-row:span 2}
+.checks li[data-tone="ok"] .dot{background:var(--ok)}
+.checks li[data-tone="warn"] .dot{background:var(--warn)}
+.checks li[data-tone="bad"] .dot{background:var(--bad)}
+.checks .l{font-size:14px;font-weight:500}
+.checks .v{font-family:var(--font-mono);font-weight:600;font-size:14px;text-align:right;font-variant-numeric:tabular-nums}
+.checks li[data-tone="warn"] .v{color:var(--warn)}
+.checks li[data-tone="bad"] .v{color:var(--bad)}
+.checks .m{grid-column:2 / 4;font-size:12.5px;color:var(--muted)}
+
+/* ---------- Form ---------- */
+.banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 14px 12px 16px;border-radius:14px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);font-size:14px}
+.banner p{margin:0;flex:1 1 260px}
+.banner b{font-weight:600}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:16px;scroll-margin-top:var(--hdr-h,118px)}
+.card-head{display:flex;align-items:center;gap:12px}
+.card-head .num{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:7px;padding:3px 7px;flex:none}
+.card-head h2{font-size:19px;font-weight:600;margin-right:auto}
+.card-desc{margin:-8px 0 0;font-size:13.5px;color:var(--muted)}
+.status{font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--idle-soft);color:var(--idle);white-space:nowrap}
+.status[data-tone="ok"]{background:var(--ok-soft);color:var(--ok)}
+.status[data-tone="warn"]{background:var(--warn-soft);color:var(--warn)}
+.status[data-tone="bad"]{background:var(--bad-soft);color:var(--bad)}
+.sub{font-family:var(--font-body);font-size:13.5px;font-weight:600;color:var(--muted);margin:2px 0 -4px}
+
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1 / -1}
+.field > label,.field > .lbl{font-size:13px;color:var(--muted);font-weight:500}
+.field .hint{font-size:12px;color:var(--muted)}
+input[type="text"],input[type="number"],input[type="date"],input[type="time"],select{width:100%;min-width:0;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);padding:0 12px;font:inherit;font-size:15px;transition:border-color .15s,box-shadow .15s,background .15s;-webkit-appearance:none;appearance:none}
+input[type="date"],input[type="time"]{display:block;line-height:42px}
+input::-webkit-date-and-time-value{text-align:left}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23778592' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+input:focus,select:focus{outline:none;border-color:var(--accent);background-color:var(--surface);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+input:disabled{opacity:.5}
+input[type="number"]{-moz-appearance:textfield}
+input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.input{position:relative;display:flex;align-items:center}
+.input input{padding-right:52px;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.input .unit{position:absolute;right:12px;font-size:12.5px;color:var(--muted);pointer-events:none;font-family:var(--font-mono)}
+
+.seg{display:flex;flex-wrap:wrap;padding:3px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;gap:3px;width:fit-content;max-width:100%}
+.seg button{border:0;background:transparent;padding:7px 12px;min-height:36px;border-radius:8px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:background .15s,color .15s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 1px var(--line)}
+
+.grp{display:flex;flex-direction:column;gap:16px}
+.typecard{display:flex;flex-direction:column;gap:8px}
+.typecard > .lbl{font-size:13px;color:var(--muted);font-weight:500;padding-left:2px}
+.seg.typeswitch{display:grid;grid-template-columns:1fr 1fr;width:100%;padding:4px;gap:4px;border-radius:14px;background:var(--surface)}
+.seg.typeswitch button{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 14px;min-height:62px;border-radius:11px;color:var(--ink)}
+.seg.typeswitch svg{width:30px;height:30px;flex:none}
+.seg.typeswitch b{display:block;font-size:15px;font-weight:600;line-height:1.3}
+.seg.typeswitch small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.seg.typeswitch button[aria-pressed="true"]{background:var(--ink);color:var(--surface);box-shadow:none}
+.seg.typeswitch button[aria-pressed="true"] small{color:color-mix(in srgb,var(--surface) 72%,transparent)}
+@media (max-width:420px){.seg.typeswitch button{padding:10px;gap:8px}.seg.typeswitch svg{width:24px;height:24px}.seg.typeswitch b{font-size:14px}}
+
+.range-row{display:flex;align-items:center;gap:12px}
+.range-row .input{width:112px;flex:none}
+input[type="range"]{flex:1;min-width:0;accent-color:var(--accent);height:28px}
+
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.ro{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ro .k{font-size:12.5px;color:var(--muted)}
+.ro .v{font-family:var(--font-mono);font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ro .v small{font-size:13px;color:var(--muted);font-weight:500;margin-left:4px}
+.ro .n{font-size:12px;color:var(--muted)}
+.ro.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.ro.hero .v{color:var(--accent)}
+
+.stack{display:flex;height:14px;border-radius:7px;overflow:hidden;gap:2px;background:var(--surface-2)}
+.stack i{display:block;height:100%;transition:flex-grow .3s ease}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--muted)}
+.legend span{white-space:nowrap}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--c);margin-right:6px;vertical-align:-1px}
+.legend b{font-family:var(--font-mono);font-weight:600;color:var(--ink);margin-left:4px}
+
+.meter-row{display:flex;flex-direction:column;gap:7px}
+.meter-label{display:flex;justify-content:space-between;gap:10px;font-size:13.5px}
+.meter-label .mono{font-weight:600}
+.meter-label > .mono:last-child{white-space:nowrap}
+.meter{position:relative;height:10px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.meter > i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--idle);transition:width .35s ease,background .2s}
+.meter[data-tone="ok"] > i{background:var(--ok)}
+.meter[data-tone="warn"] > i{background:var(--warn)}
+.meter[data-tone="bad"] > i{background:var(--bad)}
+.meter > b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.35}
+
+.chart-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:284px;position:relative}
+table.lc{border-collapse:separate;border-spacing:0;width:100%;font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.lc th,.lc td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.lc thead th{position:sticky;top:0;background:var(--surface);z-index:2;font-weight:600;color:var(--muted);font-size:12px}
+.lc tbody th{position:sticky;left:0;background:var(--surface);z-index:1;text-align:left;color:var(--muted);font-weight:600}
+.lc thead th:first-child{left:0;z-index:3;text-align:left}
+.lc td.na{color:color-mix(in srgb,var(--muted) 45%,transparent)}
+.lc .col-on{background:var(--accent-soft)}
+.lc tr.row-on td,.lc tr.row-on th{background:var(--accent-soft)}
+.lc td.hit{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.lc thead th.col-on{color:var(--accent)}
+.note{font-size:12.5px;color:var(--muted);margin:0}
+.note.warnbox{color:var(--warn);background:var(--warn-soft);padding:8px 12px;border-radius:10px}
+
+.ticks{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.tick{position:relative;display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:border-color .15s,background .15s}
+.tick:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.tick input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.tick .box{flex:none;width:22px;height:22px;border-radius:7px;border:1.5px solid color-mix(in srgb,var(--muted) 55%,transparent);display:grid;place-items:center;margin-top:1px;background:var(--surface);transition:background .15s,border-color .15s}
+.tick .box svg{width:14px;height:14px;opacity:0;transform:scale(.6);transition:opacity .15s,transform .15s;color:#fff}
+.tick input:checked + .box{background:var(--ok);border-color:var(--ok)}
+.tick input:checked + .box svg{opacity:1;transform:none}
+.tick input:focus-visible + .box{outline:2px solid var(--accent);outline-offset:2px}
+.tick.on{border-color:color-mix(in srgb,var(--ok) 40%,var(--line));background:color-mix(in srgb,var(--ok-soft) 55%,var(--surface))}
+.tick.crit input:checked + .box{background:var(--warn);border-color:var(--warn)}
+.tick.crit.on{border-color:color-mix(in srgb,var(--warn) 40%,var(--line));background:color-mix(in srgb,var(--warn-soft) 55%,var(--surface))}
+.tick .t{font-size:14.5px;line-height:1.5}
+.tick .t small{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+
+.sigs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.sig{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface-2)}
+.sig.need{border-color:color-mix(in srgb,var(--warn) 55%,var(--line))}
+.sig.optional{opacity:.72}
+.sig-role{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.sig-role b{font-size:14.5px;font-weight:600;display:block}
+.sig-role small{display:block;color:var(--muted);font-size:12.5px}
+.sig-pad{position:relative;height:116px;border-radius:10px;background:#FBFCFE;border:1px dashed #B5C0CC;overflow:hidden}
+.sig-pad canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
+.sig-pad .hint{position:absolute;inset:0 0 18px;display:grid;place-items:center;color:#8794A3;font-size:13px;pointer-events:none}
+.sig-pad .base{position:absolute;left:16px;right:16px;bottom:28px;border-bottom:1px solid #D3DAE2;pointer-events:none}
+.sig-pad .x{position:absolute;left:16px;bottom:30px;color:#A3AEBB;font-size:13px;pointer-events:none;font-family:var(--font-mono)}
+.sig-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);min-height:24px}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 2px;font-size:13px}
+
+.foot{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:10px;padding:4px 4px 0}
+.foot p{margin:0;max-width:72ch}
+.foot .row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- Modal & toast ---------- */
+.modal{position:fixed;inset:0;background:rgba(6,10,15,.52);display:none;place-items:center;z-index:60;padding:16px}
+.modal.open{display:grid}
+.modal-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 64px rgba(0,0,0,.35)}
+.modal-card h3{font-size:18px}
+.modal-card p{margin:0;color:var(--muted);font-size:14px}
+.modal-card textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);font-family:var(--font-mono);font-size:12.5px;padding:10px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.btn.danger{background:var(--bad);color:#fff;border-color:transparent}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,16px);background:#16212C;color:#EEF3F8;padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .2s,transform .2s;z-index:70;pointer-events:none;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important}}
+
+/* ---------- PDF sheet (rendered off-screen, fixed light colours) ---------- */
+#sheet-host{position:absolute;left:-12000px;top:0;width:794px;pointer-events:none}
+.sheet{width:794px;height:1123px;padding:42px 48px 36px;background:#fff;color:#121B24;font-family:"IBM Plex Sans Thai","Noto Sans Thai","Loma",sans-serif;font-size:12.5px;line-height:1.5;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.sh-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;border-bottom:2px solid #121B24;padding-bottom:12px}
+.sh-kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;color:#2453D4}
+.sh-title{font-family:"Bai Jamjuree","IBM Plex Sans Thai",sans-serif;font-size:26px;font-weight:700;line-height:1.2}
+.sh-task{font-size:13.5px;color:#3A4654;margin-top:2px}
+.sh-meta{display:grid;grid-template-columns:auto auto;gap:2px 14px;font-size:11.5px;text-align:right}
+.sh-meta span{color:#5A6776}
+.sh-meta b{font-family:"IBM Plex Mono",monospace;font-weight:600;color:#121B24}
+.sh-verdict{display:flex;gap:18px;align-items:center;padding:12px 18px;border-radius:10px;border:1.5px solid #ccc}
+.sh-v-main{flex:1}
+.sh-v-label{font-size:11px;color:#5A6776}
+.sh-v-title{font-family:"Bai Jamjuree",sans-serif;font-size:22px;font-weight:700;line-height:1.2}
+.sh-v-sub{font-size:12px;color:#3A4654}
+.sh-v-pct{text-align:right}
+.sh-v-pct b{display:block;font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;line-height:1.1}
+.sh-v-pct span{font-size:11px;color:#5A6776}
+.sh-reasons{margin:-4px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 18px;font-size:11.5px;color:#3A4654}
+.sh-reasons li{display:flex;align-items:center;gap:6px}
+.sh-reasons i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.sh-sec h3{font-family:"Bai Jamjuree",sans-serif;font-size:14px;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.sh-sec h3 .n{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;color:#2453D4;background:#E5ECFC;border-radius:5px;padding:1px 6px}
+.sh-sec h3 .r{margin-left:auto;font-family:"IBM Plex Sans Thai",sans-serif;font-size:11px;font-weight:500;color:#5A6776}
+.kv{display:grid;grid-template-columns:1fr 1fr;border:1px solid #D5DCE3;border-radius:8px;overflow:hidden}
+.kv.one{grid-template-columns:1fr}
+.kv > div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 10px;border-bottom:1px solid #E7ECF1;min-height:28px}
+.kv > div.full{grid-column:1 / -1}
+.kv > div span{color:#5A6776;font-size:11.5px;white-space:nowrap}
+.kv > div b{font-weight:600;text-align:right}
+.kv > div b.m{font-family:"IBM Plex Mono",monospace}
+.kv > div.tot{background:#F2F5F8}
+.kv > div.tot b{color:#2453D4}
+.sh-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sh-diag{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:center}
+.sh-diag img{width:100%;display:block;border:1px solid #E1E6EC;border-radius:8px}
+.sh-bar{display:flex;flex-direction:column;gap:5px}
+.sh-bar .lb{display:flex;justify-content:space-between;font-size:11.5px}
+.sh-bar .lb b{font-family:"IBM Plex Mono",monospace}
+.sh-bar .tr{height:9px;border-radius:9px;background:#EEF1F4;position:relative;overflow:hidden}
+.sh-bar .tr i{position:absolute;left:0;top:0;bottom:0;border-radius:9px}
+.sh-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;margin:0;padding:0;list-style:none}
+.sh-list li{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;line-height:1.45}
+.sh-list .bx{flex:none;width:13px;height:13px;border-radius:3px;border:1.3px solid #9AA6B2;margin-top:2px;color:#fff;font-size:10px;line-height:11px;text-align:center;font-weight:700}
+.sh-list .bx.on{background:#12845A;border-color:#12845A}
+.sh-list .bx.on.w{background:#B86200;border-color:#B86200}
+.sh-sigs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sh-sig{border:1px solid #D5DCE3;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;min-height:150px}
+.sh-sig .role{font-size:11px;font-weight:600;line-height:1.35}
+.sh-sig .role small{display:block;font-weight:400;color:#5A6776;font-size:10px}
+.sh-sig .img{height:64px;border-bottom:1px solid #C9D2DB;display:flex;align-items:flex-end;justify-content:center}
+.sh-sig .img img{max-height:62px;max-width:100%}
+.sh-sig .nm{font-size:11px;text-align:center;font-weight:600}
+.sh-sig .dt{font-size:10px;text-align:center;color:#5A6776}
+.sh-note{font-size:10.5px;color:#5A6776;border-top:1px solid #E1E6EC;padding-top:8px}
+.sh-foot{position:absolute;left:48px;right:48px;bottom:22px;display:flex;justify-content:space-between;font-size:10px;color:#8A96A3;font-family:"IBM Plex Mono",monospace}
+/* ---------- S-320 additions ---------- */
+.cl{display:flex;flex-direction:column;gap:6px}
+.cl-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px 9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);transition:border-color .15s,background .15s}
+.cl-row .no{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--muted)}
+.cl-row .t{font-size:14px;line-height:1.45}
+.cl-row .t small{display:block;color:var(--muted);font-size:12px}
+.cl-row[data-state="y"]{border-color:color-mix(in srgb,var(--ok) 40%,var(--line));background:color-mix(in srgb,var(--ok-soft) 55%,var(--surface))}
+.cl-row[data-state="n"]{border-color:color-mix(in srgb,var(--bad) 45%,var(--line));background:color-mix(in srgb,var(--bad-soft) 60%,var(--surface))}
+.cl-row[data-state="na"]{opacity:.75}
+.tri{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface);flex:none}
+.tri button{border:0;background:none;padding:0 10px;min-width:46px;min-height:34px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.tri button + button{border-left:1px solid var(--line)}
+.tri button[aria-pressed="true"][data-v="y"]{background:var(--ok);color:#fff}
+.tri button[aria-pressed="true"][data-v="n"]{background:var(--bad);color:#fff}
+.tri button[aria-pressed="true"][data-v="na"]{background:var(--ink);color:var(--surface)}
+@media (max-width:560px){.cl-row{grid-template-columns:26px minmax(0,1fr)}.cl-row .tri{grid-column:2;justify-self:start}}
+.cl-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cl-head .note{margin:0}
+
+.critlist{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.critlist li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 14px;font-size:14px}
+.critlist li + li{border-top:1px solid var(--line)}
+.critlist li small{grid-column:1;color:var(--muted);font-size:12.5px}
+.critlist li .chip{grid-row:span 2}
+.critlist li[data-met="true"]{background:color-mix(in srgb,var(--warn-soft) 55%,var(--surface))}
+
+.infobox{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);font-size:13.5px}
+.infobox b{font-weight:600}
+.infobox svg{width:18px;height:18px;flex:none;color:var(--accent);margin-top:2px}
+.infobox.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.infobox.warn svg{color:var(--warn)}
+.ref{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap;vertical-align:1px}
+.subtle{font-size:12.5px;color:var(--muted);margin:0}
+.sh-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.sh-tbl th{background:#F2F5F8;text-align:left;font-weight:600;color:#3A4654;padding:4px 8px;border-bottom:1px solid #D5DCE3}
+.sh-tbl td{padding:4px 8px;border-bottom:1px solid #E7ECF1}
+.sh-tbl td.m{font-family:"IBM Plex Mono",monospace}
+.sh-cl{display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;margin:0;padding:0;list-style:none}
+.sh-cl li{display:flex;gap:6px;align-items:flex-start;font-size:10.4px;line-height:1.4}
+.sh-cl .mk{flex:none;min-width:26px;text-align:center;border-radius:3px;font-family:"IBM Plex Mono",monospace;font-size:9px;font-weight:600;padding:1px 3px;border:1px solid #C9D2DB;color:#8A96A3}
+.sh-cl .mk.y{background:#12845A;border-color:#12845A;color:#fff}
+.sh-cl .mk.n{background:#C92D2D;border-color:#C92D2D;color:#fff}
+.sh-cl .mk.na{background:#E9EDF1;color:#3A4654}
+.sh-sigs.s3{grid-template-columns:repeat(3,1fr)}
+
+/* ---------- (i) help buttons ---------- */
+.lblrow{display:flex;align-items:center;gap:6px;min-width:0}
+.lblrow > label,.lblrow > .lbl{font-size:13px;color:var(--muted);font-weight:500;min-width:0}
+.typecard > .lblrow{padding-left:2px}
+.info{position:relative;flex:none;width:20px;height:20px;border-radius:50%;border:0;padding:0;display:inline-grid;place-items:center;background:var(--accent-soft);color:var(--accent);font:700 12.5px/1 var(--font-mono);cursor:pointer;transition:background .15s,color .15s,transform .15s}
+.info::before{content:"";position:absolute;inset:-9px}
+.info svg{width:15px;height:15px;display:block}
+.helptip .info svg{width:13px;height:13px}
+.info:hover{background:var(--accent);color:var(--accent-ink)}
+.info:active{transform:scale(.92)}
+.info:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.info[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink)}
+.helptip{margin:-6px 2px 0;font-size:12.5px;line-height:1.6;color:var(--muted)}
+.helptip .info{pointer-events:none;width:18px;height:18px;font-size:11.5px;vertical-align:-4px;margin:0 2px}
+
+.help{position:fixed;inset:0;z-index:65;background:rgba(6,10,15,.48);display:grid;place-items:center;padding:16px;opacity:0;transition:opacity .18s}
+.help[hidden]{display:none}
+.help.open{opacity:1}
+.help-card{position:relative;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;width:100%;max-width:480px;max-height:min(80vh,640px);overflow:auto;padding:18px 18px 16px;box-shadow:0 24px 64px rgba(0,0,0,.35);transform:translateY(10px);transition:transform .2s}
+.help.open .help-card{transform:none}
+.help-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:start;padding-right:2px}
+.help-no{grid-column:1;font:600 11.5px/1.3 var(--font-mono);color:var(--accent);letter-spacing:.02em}
+.help-head h3{grid-column:1;margin:0;font-family:var(--font-display);font-size:18px;line-height:1.35}
+.help-x{grid-column:2;grid-row:1 / span 2;width:40px;height:40px;margin:-8px -8px 0 0;border:0;border-radius:12px;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+.help-x:hover{background:var(--idle-soft);color:var(--ink)}
+.help-x:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.help-body{display:flex;flex-direction:column;gap:10px;margin:14px 0 0}
+.help-blk{border-radius:12px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line)}
+.help-blk dt{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 3px}
+.help-blk dt svg{width:15px;height:15px;flex:none}
+.help-blk dd{margin:0;font-size:14.5px;line-height:1.6}
+.help-blk.src{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 22%,transparent)}
+.help-blk.src dt{color:var(--accent)}
+.help-ref{margin:12px 0 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}
+.help-ref span{font-family:var(--font-mono);font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--idle-soft);color:var(--steel)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .help-ref span{color:var(--ink)}}
+:root[data-theme="dark"] .help-ref span{color:var(--ink)}
+@media (max-width:640px){
+  .help{place-items:end stretch;padding:0}
+  .help-card{max-width:none;border-radius:20px 20px 0 0;border-bottom:0;max-height:82vh;padding:10px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(40px)}
+  .help-card::before{content:"";display:block;width:40px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 10px}
+}
+@media print{.info,.helptip,.help{display:none !important}}
+</style>
+</head>
+<body>
+
+<header class="appbar" id="appbar">
+  <div class="appbar-row">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="6" rx="1.5"/><path d="M12 8v4"/><path d="M12 12v3.5a3.5 3.5 0 1 1-3.5-3.5"/></svg>
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">Lifting Plan</span>
+        <span class="brand-doc mono" id="hdr-doc">—</span>
+      </div>
+    </div>
+    <span class="pill" id="hdr-pill" data-tone="idle"><span class="dot"></span><span id="hdr-pill-text">รอข้อมูล</span></span>
+    <div class="actions">
+      <button class="btn" id="btn-copy" type="button" aria-label="คัดลอกสรุปแผน">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        <span class="lbl">คัดลอกสรุป</span>
+      </button>
+      <button class="btn primary" id="btn-pdf" type="button" aria-label="ดาวน์โหลด PDF" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
+        <span class="lbl">ดาวน์โหลด PDF</span>
+      </button>
+    </div>
+  </div>
+  <nav class="stepnav" aria-label="ส่วนของแผนการยก">
+    <button class="step" type="button" data-target="sec-job"><span class="sn">1</span>งานและทีม<span class="sd" data-sec="job"></span></button>
+    <button class="step" type="button" data-target="sec-load"><span class="sn">2</span>น้ำหนัก<span class="sd" data-sec="load"></span></button>
+    <button class="step" type="button" data-target="sec-crane"><span class="sn">3</span><span id="st3">ปั้นจั่น</span><span class="sd" data-sec="crane"></span></button>
+    <button class="step" type="button" data-target="sec-sling"><span class="sn">4</span>สลิง<span class="sd" data-sec="sling"></span></button>
+    <button class="step" type="button" data-target="sec-ground"><span class="sn">5</span><span id="st5">พื้นและลม</span><span class="sd" data-sec="ground"></span></button>
+    <button class="step" type="button" data-target="sec-crit"><span class="sn">6</span>เกณฑ์ S-320<span class="sd" data-sec="crit"></span></button>
+    <button class="step" type="button" data-target="sec-check"><span class="sn">7</span>Checklist<span class="sd" data-sec="check"></span></button>
+    <button class="step" type="button" data-target="sec-sign"><span class="sn">8</span>ลงนาม<span class="sd" data-sec="sign"></span></button>
+  </nav>
+</header>
+
+<main class="layout">
+
+  <aside class="panel" id="panel" aria-label="ผลการประเมินแผนการยก">
+    <section class="verdict" id="verdict" data-tone="idle" aria-live="polite">
+      <div class="verdict-top">
+        <span class="eyebrow">ผลการประเมินตาม S-320</span>
+        <span class="chip" id="v-tag" data-tone="idle">—</span>
+        <span class="chip" id="v-ready" data-tone="idle">ยังไม่พร้อมยก</span>
+      </div>
+      <h1 class="verdict-title" id="v-title">รอข้อมูล</h1>
+      <p class="verdict-sub" id="v-sub"></p>
+      <ul class="reasons" id="v-reasons"></ul>
+    </section>
+
+    <section class="instrument" aria-label="การใช้พิกัดยก">
+      <div id="gauge"></div>
+      <dl class="kpis">
+        <div class="kpi"><dt>น้ำหนักยกรวม</dt><dd id="k-gross">—</dd></div>
+        <div class="kpi"><dt id="k-l2">พิกัดยก</dt><dd id="k-cap">—</dd></div>
+        <div class="kpi"><dt id="k-l3">รัศมีสูงสุด</dt><dd id="k-radius">—</dd></div>
+        <div class="kpi"><dt id="k-l4">มุมบูมที่รัศมีสูงสุด</dt><dd id="k-angle">—</dd></div>
+      </dl>
+    </section>
+
+    <figure class="diagram-card">
+      <div class="hd"><b id="d-title">ภาพด้านข้างการยก</b> <span id="d-cfg"></span></div>
+      <div id="diagram"></div>
+      <figcaption id="d-cap"></figcaption>
+    </figure>
+
+    <ul class="checks" id="checks" aria-label="รายการตรวจสอบ"></ul>
+  </aside>
+
+  <div class="form" id="form">
+
+    <div class="banner" id="banner">
+      <p><b>กำลังแสดงข้อมูลตัวอย่าง</b> แก้ไขได้ทุกช่อง ผลประเมินจะคำนวณใหม่ทันที</p>
+      <button class="btn sm" type="button" id="btn-new-top">เริ่มแผนใหม่</button>
+    </div>
+
+    <div class="typecard">
+      <span class="lbl" id="l-ctype">ชนิดปั้นจั่นในแผนนี้</span>
+      <div class="seg typeswitch" data-k="craneType" role="group" aria-labelledby="l-ctype">
+        <button type="button" data-v="mobile">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 23h17v-4H3z"/><path d="M20 23h6v-5l-3-3h-3"/><circle cx="7" cy="25.5" r="1.8"/><circle cx="22" cy="25.5" r="1.8"/><path d="M9 19L25 5"/><path d="M25 5v9"/><path d="M23.5 15.5a1.5 1.5 0 1 0 1.5-1.5"/></svg>
+          <span><b>ปั้นจั่นเคลื่อนที่</b><small>Mobile crane</small></span>
+        </button>
+        <button type="button" data-v="overhead">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 28V7"/><path d="M28 28V7"/><path d="M2 7h28"/><path d="M2 10h28"/><rect x="13" y="10" width="6" height="3" rx="1"/><path d="M16 13v8"/><path d="M14.5 22.5a1.5 1.5 0 1 0 1.5-1.5"/><path d="M2 28h28"/></svg>
+          <span><b>เครนเหนือศีรษะ</b><small>Overhead / Gantry crane</small></span>
+        </button>
+      </div>
+    </div>
+    <p class="helptip">แตะปุ่ม <span class="info" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6.6" r="1.9" fill="currentColor"/><path d="M12 11v7.4" stroke="currentColor" stroke-width="2.9" stroke-linecap="round"/></svg></span> ข้างชื่อช่อง เพื่อดูว่าข้อมูลมาจากไหนและกรอกอย่างไร</p>
+
+    <!-- 01 Job & team -->
+    <section class="card" id="sec-job" aria-labelledby="h-job">
+      <header class="card-head"><span class="num">01</span><h2 id="h-job">ข้อมูลงานยกและทีมงาน</h2><span class="status" data-status="job"></span></header>
+      <div class="fields">
+        <div class="field full"><label for="f-task">รายการที่จะยก (Item to be lifted)</label><input type="text" id="f-task" data-k="task" placeholder="เช่น ยกติดตั้งปั๊ม P-101 ขึ้นฐาน"></div>
+        <div class="field full"><label for="f-area">พื้นที่และตำแหน่งที่ตั้ง (Plant and Location)</label><input type="text" id="f-area" data-k="area"></div>
+        <div class="field full"><label for="f-pickset">จุดยก → จุดวาง</label><input type="text" id="f-pickset" data-k="pickset"></div>
+        <div class="field"><label for="f-doc">เลขที่แผน</label><input type="text" id="f-doc" data-k="docNo" class="mono"></div>
+        <div class="field"><label for="f-ptw">เลขที่ Safe Work Permit</label><input type="text" id="f-ptw" data-k="ptw"></div>
+        <div class="field"><label for="f-date">วันที่ยก (Date of Lift)</label><input type="date" id="f-date" data-k="date"></div>
+        <div class="field"><label for="f-time">เวลาเริ่ม</label><input type="time" id="f-time" data-k="time"></div>
+      </div>
+      <h3 class="sub">ทีมงานยก <span class="ref">S-320 I.D, E</span></h3>
+      <p class="subtle">ทุกคนต้องผ่านการอบรมตามหน้าที่ และอบรมหรือทบทวนทุก 2 ปี ระบบตรวจวันที่ให้เทียบกับวันยก</p>
+      <div class="fields">
+        <div class="field"><label for="f-sup">ผู้ประสานงานยก / ผู้ควบคุมการใช้ปั้นจั่น</label><input type="text" id="f-sup" data-k="supervisor"></div>
+        <div class="field"><label for="f-supT">อบรม / ทบทวนล่าสุด</label><input type="date" id="f-supT" data-k="supTrain"></div>
+        <div class="field"><label for="f-op">ผู้บังคับปั้นจั่น</label><input type="text" id="f-op" data-k="operator"></div>
+        <div class="field"><label for="f-opT">อบรม / ทบทวนล่าสุด</label><input type="date" id="f-opT" data-k="opTrain"></div>
+        <div class="field"><label for="f-sig">ผู้ให้สัญญาณแก่ผู้บังคับปั้นจั่น</label><input type="text" id="f-sig" data-k="signalman"></div>
+        <div class="field"><label for="f-sigT">อบรม / ทบทวนล่าสุด</label><input type="date" id="f-sigT" data-k="sigTrain"></div>
+        <div class="field"><label for="f-rig">ผู้ยึดเกาะวัสดุ</label><input type="text" id="f-rig" data-k="rigger"></div>
+        <div class="field"><label for="f-rigT">อบรม / ทบทวนล่าสุด</label><input type="date" id="f-rigT" data-k="rigTrain"></div>
+      </div>
+    </section>
+
+    <!-- 02 Weight -->
+    <section class="card" id="sec-load" aria-labelledby="h-load">
+      <header class="card-head"><span class="num">02</span><h2 id="h-load">น้ำหนัก (Weight)</h2><span class="status" data-status="load"></span></header>
+      <p class="subtle">ตามเอกสารแนบ 1 ส่วน B ของ S-320 หน่วยกิโลกรัม ต้องรวมอุปกรณ์ยกทุกชิ้นที่ใช้ในงาน</p>
+      <div class="fields">
+        <div class="field"><span class="lbl" id="l-cond">สภาพของอุปกรณ์</span>
+          <div class="seg" data-k="cond" role="group" aria-labelledby="l-cond"><button type="button" data-v="new">ใหม่</button><button type="button" data-v="used">ใช้แล้ว</button></div>
+        </div>
+        <div class="field"><span class="lbl" id="l-wsrc">แหล่งข้อมูลของน้ำหนัก</span>
+          <div class="seg" data-k="wsrc" role="group" aria-labelledby="l-wsrc"><button type="button" data-v="nameplate">Nameplate</button><button type="button" data-v="drawing">Drawing</button><button type="button" data-v="calc">คำนวณ</button><button type="button" data-v="weighed">ชั่งจริง</button></div>
+        </div>
+        <div class="field"><label for="f-loadW">น้ำหนักเปล่าของชิ้นงาน (Weight empty)</label><div class="input"><input type="number" id="f-loadW" data-k="loadW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+        <div class="field" data-only="mobile"><label for="f-ballW">Headache ball</label><div class="input"><input type="number" id="f-ballW" data-k="ballW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+        <div class="field" data-only="mobile"><label for="f-hookW">Block (Hook block)</label><div class="input"><input type="number" id="f-hookW" data-k="hookW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+        <div class="field"><label for="f-beamW">Lifting bar / Spreader</label><div class="input"><input type="number" id="f-beamW" data-k="beamW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+        <div class="field"><label for="f-rigW">สลิงและ Shackle</label><div class="input"><input type="number" id="f-rigW" data-k="rigW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+        <div class="field"><label for="f-allowW">ค่าเผื่อของค้างในอุปกรณ์</label><div class="input"><input type="number" id="f-allowW" data-k="allowW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div><span class="hint">น้ำหรือผลิตภัณฑ์ค้าง สนิม ของแข็ง</span></div>
+        <div class="field"><label for="f-otherW">อื่นๆ (Other)</label><div class="input"><input type="number" id="f-otherW" data-k="otherW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+      </div>
+      <div class="stack" id="stack" aria-hidden="true"></div>
+      <div class="legend" id="legend"></div>
+      <div class="readouts">
+        <div class="ro hero"><span class="k">น้ำหนักรวม (Total weight)</span><span class="v" id="o-gross">—</span><span class="n" id="o-gross-n"></span></div>
+      </div>
+      <div class="infobox warn" id="used-note" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18v.5"/></svg><span>อุปกรณ์ใช้แล้วอาจมีน้ำ ผลิตภัณฑ์ หรือของแข็งค้างอยู่ ควรใส่ค่าเผื่อ หรือใช้ปั้นจั่นที่มีระบบแสดงน้ำหนักถ้าไม่แน่ใจ <span class="ref">S-320 II.A</span></span></div>
+    </section>
+
+    <!-- 03 Crane -->
+    <section class="card" id="sec-crane" aria-labelledby="h-crane">
+      <header class="card-head"><span class="num">03</span><h2 id="h-crane">ข้อมูลปั้นจั่น</h2><span class="status" data-status="crane"></span></header>
+      <div class="fields">
+        <div class="field full"><label for="f-cname" id="l-cname">ประเภทของปั้นจั่น (Type of crane)</label><input type="text" id="f-cname" data-k="craneName"></div>
+        <div class="field"><label for="f-cid">หมายเลขเครื่อง / ทะเบียน</label><input type="text" id="f-cid" data-k="craneId"></div>
+        <div class="field"><label for="f-insp" id="l-insp">ผลตรวจปั้นจั่น (ปจ.2) ใช้ได้ถึง</label><input type="date" id="f-insp" data-k="inspExp"></div>
+      </div>
+
+      <div class="grp" data-only="overhead">
+        <div class="fields">
+          <div class="field"><label for="f-ohtype">ชนิดเครน</label>
+            <select id="f-ohtype" data-k="ohType">
+              <option value="sg">Overhead crane ในอาคาร คานเดี่ยว</option>
+              <option value="dg">Overhead crane ในอาคาร คานคู่</option>
+              <option value="gantry">Gantry crane</option>
+              <option value="jib">Jib crane / รอกแขนยึด</option>
+              <option value="mono">Monorail hoist</option>
+            </select>
+          </div>
+          <div class="field"><span class="lbl" id="l-hoist">รอกที่ใช้ยก</span>
+            <div class="seg" data-k="hoist" role="group" aria-labelledby="l-hoist"><button type="button" data-v="main">Main hoist</button><button type="button" data-v="aux">Auxiliary</button></div>
+          </div>
+          <div class="field"><label for="f-swlC">พิกัดยกของเครน (ป้ายที่คาน)</label><div class="input"><input type="number" id="f-swlC" data-k="swlCrane" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+          <div class="field"><label for="f-swlH">พิกัดยกของรอกที่ใช้</label><div class="input"><input type="number" id="f-swlH" data-k="swlHoist" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+          <div class="field"><label for="f-span">ช่วงคาน (Span)</label><div class="input"><input type="number" id="f-span" data-k="span" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        </div>
+        <div class="readouts">
+          <div class="ro hero"><span class="k">พิกัดยกที่ใช้ประเมิน</span><span class="v" id="o-capOH">—</span><span class="n" id="o-capOH-n">ใช้ค่าที่ต่ำกว่าระหว่างเครนกับรอก</span></div>
+          <div class="ro"><span class="k">Block / Headache ball</span><span class="v" style="font-size:16px">ไม่นับรวม</span><span class="n">พิกัดบนป้ายเครนเหนือศีรษะคือน้ำหนักที่แขวนใต้ตะขอได้</span></div>
+        </div>
+        <div class="infobox" id="exempt-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span id="exempt-text"></span></div>
+      </div>
+
+      <div class="grp" data-only="mobile">
+        <div class="fields">
+          <div class="field"><label for="f-cw">น้ำหนักปั้นจั่นรวมตุ้มถ่วง</label><div class="input"><input type="number" id="f-cw" data-k="craneW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div><span class="hint">ใช้คำนวณแรงกดขาค้ำในส่วนที่ 5</span></div>
+          <div class="field"><label for="f-boom">ความยาวบูม (Length of boom)</label><div class="input"><input type="number" id="f-boom" data-k="boom" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+          <div class="field"><label for="f-rp">รัศมีที่จุดยก (Pick-up)</label><div class="input"><input type="number" id="f-rp" data-k="radiusPick" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div><span class="hint">จุดกึ่งกลางชิ้นงานถึง Center pin ของปั้นจั่น</span></div>
+          <div class="field"><label for="f-rs">รัศมีที่จุดวาง (Set)</label><div class="input"><input type="number" id="f-rs" data-k="radiusSet" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+          <div class="field"><span class="lbl" id="l-capmode">พิกัดยกได้จาก</span>
+            <div class="seg" data-k="capMode" role="group" aria-labelledby="l-capmode"><button type="button" data-v="chart">Load chart สาธิต</button><button type="button" data-v="manual">กรอกจาก chart จริง</button></div>
+          </div>
+        </div>
+        <div class="grp" id="manual-grp">
+          <p class="subtle">พิกัดยกของปั้นจั่นภายใต้สภาวะงานยกที่เสี่ยงที่สุด ที่รัศมีสูงสุด ระบบใช้ค่าที่ต่ำที่สุด <span class="ref">เอกสารแนบ 1 A.e</span></p>
+          <div class="fields">
+            <div class="field"><label for="f-capR">ด้านหลัง (Over rear)</label><div class="input"><input type="number" id="f-capR" data-k="capRear" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+            <div class="field"><label for="f-capF">ด้านหน้า (Over front)</label><div class="input"><input type="number" id="f-capF" data-k="capFront" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+            <div class="field"><label for="f-capS">ด้านข้าง (Over side)</label><div class="input"><input type="number" id="f-capS" data-k="capSide" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+          </div>
+        </div>
+        <div class="readouts">
+          <div class="ro"><span class="k">มุมบูมที่จุดยก</span><span class="v" id="o-angP">—</span><span class="n">cos⁻¹ (รัศมี ÷ บูม)</span></div>
+          <div class="ro"><span class="k">มุมบูมที่จุดวาง</span><span class="v" id="o-angS">—</span><span class="n" id="o-tip"></span></div>
+          <div class="ro hero"><span class="k">พิกัดยกที่รัศมีสูงสุด</span><span class="v" id="o-cap">—</span><span class="n" id="o-cap-n"></span></div>
+          <div class="ro"><span class="k">95% ของพิกัดยก</span><span class="v" id="o-cap95">—</span><span class="n">น้ำหนักรวมต้องน้อยกว่าค่านี้</span></div>
+        </div>
+        <div id="chart-block">
+          <div class="chart-wrap" id="chart-wrap"><table class="lc" id="lc"></table></div>
+          <p class="note" style="margin-top:8px">Load chart สาธิตของปั้นจั่น 50 ตัน (หน่วย kg) ใช้สอนวิธีอ่านเท่านั้น ระบบเลือกช่องที่บูมยาวกว่าและรัศมีไกลกว่าค่าที่กรอกเสมอ งานจริงให้เลือก “กรอกจาก chart จริง”</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 Sling -->
+    <section class="card" id="sec-sling" aria-labelledby="h-sling">
+      <header class="card-head"><span class="num">04</span><h2 id="h-sling">สลิงและ Shackle</h2><span class="status" data-status="sling"></span></header>
+      <div class="fields">
+        <div class="field"><span class="lbl" id="l-legs">จำนวนสลิงที่คล้องตะขอ</span>
+          <div class="seg" data-k="legs" data-num="1" role="group" aria-labelledby="l-legs"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button></div>
+        </div>
+        <div class="field"><span class="lbl" id="l-hitch">รูปแบบการผูก</span>
+          <div class="seg" data-k="hitch" role="group" aria-labelledby="l-hitch"><button type="button" data-v="vertical">ตรง</button><button type="button" data-v="choker">รัดคอ</button><button type="button" data-v="basket">Basket</button></div>
+        </div>
+        <div class="field"><label for="f-stype">ประเภทสลิง</label>
+          <select id="f-stype" data-k="slingType"><option value="wire">Wire rope sling</option><option value="web">Synthetic web sling</option><option value="round">Round sling</option><option value="chain">Steel chain sling</option><option value="mesh">Metal-mesh sling</option></select>
+        </div>
+        <div class="field"><label for="f-ssize">ขนาดสลิง</label><input type="text" id="f-ssize" data-k="slingSize" placeholder="เช่น Ø 22 mm"></div>
+        <div class="field"><label for="f-slen">ความยาวสลิง</label><div class="input"><input type="number" id="f-slen" data-k="slingLen" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        <div class="field"><label for="f-wll">พิกัดสลิงต่อเส้น (WLL)</label><div class="input"><input type="number" id="f-wll" data-k="wll" inputmode="decimal" step="0.1" min="0"><span class="unit">ตัน</span></div><span class="hint">ตามป้ายสลิง และรูปแบบการผูก</span></div>
+        <div class="field" data-only="overhead"><label for="f-spread">ระยะห่างระหว่างจุดยกบนชิ้นงาน</label><div class="input"><input type="number" id="f-spread" data-k="spread" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        <div class="field full"><label for="f-sang">มุมสลิงวัดจากแนวนอน</label>
+          <div class="range-row">
+            <input type="range" id="f-sang-r" data-k="slingAng" min="20" max="90" step="1" aria-label="มุมสลิง (แถบเลื่อน)">
+            <div class="input"><input type="number" id="f-sang" data-k="slingAng" inputmode="decimal" step="1" min="0" max="90"><span class="unit">องศา</span></div>
+          </div>
+          <span class="hint">S-320: มุมระหว่างสลิงกับชิ้นงานต้องไม่น้อยกว่า 45° ถ้าน้อยกว่าต้องแสดงการคำนวณแรงรับ ซึ่งโปรแกรมคำนวณให้ด้านล่าง</span>
+        </div>
+        <div class="field"><label for="f-pin">Shackle ขนาดหมุด (Pin Diam.)</label>
+          <select id="f-pin" data-k="pinSize"><option value="">— เลือก —</option></select>
+        </div>
+        <div class="field"><label for="f-shc">พิกัด Shackle (ตามผู้ผลิต)</label><div class="input"><input type="number" id="f-shc" data-k="shackleCap" inputmode="decimal" step="0.1" min="0"><span class="unit">ตัน</span></div></div>
+      </div>
+      <div class="readouts">
+        <div class="ro"><span class="k">ขาที่คิดว่ารับน้ำหนัก</span><span class="v" id="o-legs">—</span><span class="n" id="o-legs-n"></span></div>
+        <div class="ro"><span class="k">ตัวคูณมุม (1 / sin θ)</span><span class="v" id="o-factor">—</span><span class="n">ยิ่งมุมต่ำ ตัวคูณยิ่งสูง</span></div>
+        <div class="ro hero"><span class="k">แรงตึงต่อขา</span><span class="v" id="o-tension">—</span><span class="n" id="o-tension-n"></span></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-label"><span>แรงตึงเทียบพิกัดสลิง</span><span class="mono" id="m-sling-l">—</span></div>
+        <div class="meter" id="m-sling"><i></i></div>
+      </div>
+    </section>
+
+    <!-- 05 Ground / headroom / wind -->
+    <section class="card" id="sec-ground" aria-labelledby="h-ground">
+      <header class="card-head"><span class="num">05</span><h2 id="h-ground">พื้นรับขาค้ำและสภาพลม</h2><span class="status" data-status="ground"></span></header>
+
+      <div class="grp" data-only="overhead">
+        <div class="fields">
+          <div class="field"><label for="f-hookH">ความสูงตะขอสูงสุด (จากพื้น)</label><div class="input"><input type="number" id="f-hookH" data-k="hookH" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+          <div class="field"><label for="f-obstH">สิ่งกีดขวางสูงสุดบนเส้นทาง</label><div class="input"><input type="number" id="f-obstH" data-k="obstH" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+          <div class="field"><label for="f-clear">ระยะพ้นสิ่งกีดขวางที่ต้องการ</label><div class="input"><input type="number" id="f-clear" data-k="clearReq" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+          <div class="field"><label for="f-loadHt">ความสูงชิ้นงาน</label><div class="input"><input type="number" id="f-loadHt" data-k="loadHt" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        </div>
+        <div class="readouts">
+          <div class="ro"><span class="k">ความสูงสลิง</span><span class="v" id="o-slingH">—</span><span class="n" id="o-slingH-n">จากระยะห่างจุดยกและมุมสลิง</span></div>
+          <div class="ro"><span class="k">ความสูงตะขอที่ต้องใช้</span><span class="v" id="o-reqHook">—</span><span class="n">สิ่งกีดขวาง + ระยะพ้น + ชิ้นงาน + สลิง</span></div>
+          <div class="ro hero"><span class="k">ระยะตะขอเหลือ</span><span class="v" id="o-margin">—</span><span class="n" id="o-margin-n"></span></div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-label"><span>ความสูงตะขอที่ต้องใช้เทียบที่เครนยกได้</span><span class="mono" id="m-head-l">—</span></div>
+          <div class="meter" id="m-head"><i></i></div>
+        </div>
+        <label class="tick crit" for="f-outdoor"><input type="checkbox" id="f-outdoor" data-k="outdoor"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg></span><span class="t">เครนติดตั้งกลางแจ้ง<small>ต้องประเมินความเร็วลมด้วย</small></span></label>
+      </div>
+
+      <div class="grp" data-only="mobile">
+        <div class="fields">
+          <div class="field"><span class="lbl" id="l-outmode">แรงกดขาค้ำสูงสุด</span>
+            <div class="seg" data-k="outMode" role="group" aria-labelledby="l-outmode"><button type="button" data-v="auto">ประมาณ 75%</button><button type="button" data-v="manual">ค่าจากผู้ผลิต</button></div>
+          </div>
+          <div class="field" id="fld-outManual"><label for="f-outM">แรงกดขาค้ำสูงสุดจากผู้ผลิต</label><div class="input"><input type="number" id="f-outM" data-k="outManual" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+          <div class="field"><label for="f-padW">แผ่นรองขาค้ำ กว้าง</label><div class="input"><input type="number" id="f-padW" data-k="padW" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+          <div class="field"><label for="f-padL">แผ่นรองขาค้ำ ยาว</label><div class="input"><input type="number" id="f-padL" data-k="padL" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+          <div class="field"><label for="f-ground">พื้นรับน้ำหนักได้</label><div class="input"><input type="number" id="f-ground" data-k="ground" inputmode="decimal" step="0.5" min="0"><span class="unit">ตัน/ม²</span></div><span class="hint">ผู้ประสานงานยกเป็นผู้ประเมินสภาพดิน (S-320 I.D)</span></div>
+        </div>
+        <div class="readouts">
+          <div class="ro"><span class="k">แรงกดขาค้ำสูงสุด</span><span class="v" id="o-react">—</span><span class="n" id="o-react-n"></span></div>
+          <div class="ro hero"><span class="k">แรงกดบนพื้น</span><span class="v" id="o-press">—</span><span class="n" id="o-press-n"></span></div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-label"><span>แรงกดเทียบความสามารถรับน้ำหนักของพื้น</span><span class="mono" id="m-ground-l">—</span></div>
+          <div class="meter" id="m-ground"><i></i></div>
+        </div>
+      </div>
+
+      <div class="grp" id="wind-grp">
+        <h3 class="sub">ลม <span class="ref">เอกสารแนบ 2 ข้อ 1</span></h3>
+        <div class="fields">
+          <div class="field"><label for="f-wind">ความเร็วลมขณะประเมิน</label><div class="input"><input type="number" id="f-wind" data-k="wind" inputmode="decimal" step="0.1" min="0"><span class="unit">ม./วินาที</span></div></div>
+          <div class="field"><label for="f-windLim">ความเร็วลมสูงสุดที่กำหนด</label><div class="input"><input type="number" id="f-windLim" data-k="windLim" inputmode="decimal" step="0.1" min="0"><span class="unit">ม./วินาที</span></div><span class="hint">ตามคู่มือปั้นจั่น และคนที่คุมเชือกประคองต้องควบคุมได้</span></div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-label"><span>ความเร็วลมเทียบที่กำหนด <span id="o-wind-kmh" class="mono"></span></span><span class="mono" id="m-wind-l">—</span></div>
+          <div class="meter" id="m-wind"><i></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 S-320 criteria -->
+    <section class="card" id="sec-crit" aria-labelledby="h-crit">
+      <header class="card-head"><span class="num">06</span><h2 id="h-crit">เกณฑ์ Critical lift ตาม S-320</h2><span class="status" data-status="crit"></span></header>
+      <div class="infobox" id="crit-exempt" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span>เครนชนิดนี้ได้รับยกเว้นตาม <b>S-320 ข้อ F</b> ไม่ต้องทำใบอนุญาตงานยกที่มีความเสี่ยง แต่ผู้ใช้ต้องดูแลไม่ให้ยกเกินพิกัดที่ระบุ ถ้าเป็น Gantry crane ให้เลือกชนิดเป็น Gantry ในส่วนที่ 3</span></div>
+      <div class="grp" id="crit-inputs">
+        <p class="subtle">ติ๊กสภาพที่มีในงานนี้ ระบบตรวจเงื่อนไขเปอร์เซ็นต์ให้เอง <span class="ref">S-320 I.C</span></p>
+        <div class="ticks" id="crit-list"></div>
+        <ul class="critlist" id="crit-eval"></ul>
+      </div>
+      <h3 class="sub">สายไฟฟ้าใกล้งานยก <span class="ref">S-320 E</span></h3>
+      <label class="tick crit" for="f-pnear"><input type="checkbox" id="f-pnear" data-k="powerNear"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg></span><span class="t">มีสายไฟฟ้าอยู่ใกล้แนวยก<small>ระยะจากสายไฟถึงส่วนใดของปั้นจั่นหรือของที่ยก</small></span></label>
+      <div class="grp" id="power-grp">
+        <div class="fields">
+          <div class="field"><label for="f-kv">แรงดันไฟฟ้า</label><div class="input"><input type="number" id="f-kv" data-k="kV" inputmode="decimal" step="1" min="0"><span class="unit">kV</span></div></div>
+          <div class="field"><label for="f-pd">ระยะห่างใกล้สุดที่จะเกิดขึ้น</label><div class="input"><input type="number" id="f-pd" data-k="powerDist" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        </div>
+        <div class="readouts">
+          <div class="ro hero"><span class="k">ระยะห่างขั้นต่ำขณะยก</span><span class="v" id="o-preq">—</span><span class="n">ไม่เกิน 50 kV = 3 ม. · เกิน 50 kV เพิ่ม 1 ซม. ต่อ 1 kV</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 Pre-lift checklist -->
+    <section class="card" id="sec-check" aria-labelledby="h-check">
+      <header class="card-head"><span class="num">07</span><h2 id="h-check">แบบตรวจสอบก่อนงานยก</h2><span class="status" data-status="check"></span></header>
+      <div class="cl-head"><p class="note">ตามเอกสารแนบ 2 Pre-Lift Check List ของ S-320 ตอบทุกข้อ ใช่ / ไม่ใช่ / ไม่เกี่ยวข้อง</p><button type="button" class="linkbtn" id="cl-reset">ล้างคำตอบ</button></div>
+      <div class="cl" id="check-list"></div>
+    </section>
+
+    <!-- 08 Sign -->
+    <section class="card" id="sec-sign" aria-labelledby="h-sign">
+      <header class="card-head"><span class="num">08</span><h2 id="h-sign">การทวนสอบและอนุมัติ</h2><span class="status" data-status="sign"></span></header>
+      <p class="card-desc">S-320 II.B: ผู้ทบทวนคนที่ 2 ต้องคำนวณแยกจากคนที่ 1 แล้วนำผลมาเทียบกัน ถ้าต่างกันต้องแก้ให้ตรงก่อนส่งให้ NatureWorks อนุมัติ</p>
+      <label class="tick" for="f-match"><input type="checkbox" id="f-match" data-k="calcMatch"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg></span><span class="t">ผลคำนวณของผู้ทบทวนคนที่ 1 และคนที่ 2 ตรงกัน<small>แนบการคำนวณของคนที่ 2 ไว้กับแผน</small></span></label>
+      <div class="sigs" id="sigs"></div>
+    </section>
+
+    <div class="foot">
+      <p>อ้างอิง S-320 Critical Lift Permits ของ NatureWorks · Load chart ในตัวอย่างเป็นข้อมูลสาธิต งานจริงต้องใช้ load chart และข้อมูลแรงกดขาค้ำจากผู้ผลิตปั้นจั่นคันที่ใช้ ร่างจะถูกบันทึกไว้ในเบราว์เซอร์นี้อัตโนมัติ</p>
+      <div class="row">
+        <button class="btn sm" type="button" id="btn-new">เริ่มแผนใหม่</button>
+        <button class="btn sm" type="button" id="btn-example">โหลดข้อมูลตัวอย่าง</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-card">
+    <h3 id="modal-title"></h3>
+    <p id="modal-text"></p>
+    <textarea id="modal-area" hidden readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn" type="button" id="modal-cancel">ยกเลิก</button>
+      <button class="btn primary" type="button" id="modal-ok">ตกลง</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="help" id="help" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+  <div class="help-card">
+    <div class="help-head">
+      <span class="help-no" id="help-no"></span>
+      <h3 id="help-title"></h3>
+      <button type="button" class="help-x" id="help-close" aria-label="ปิดคำอธิบาย">×</button>
+    </div>
+    <dl class="help-body">
+      <div class="help-blk src"><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>หาข้อมูลจาก</dt><dd id="help-src"></dd></div>
+      <div class="help-blk"><dt><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>วิธีกรอก / ข้อควรระวัง</dt><dd id="help-how"></dd></div>
+    </dl>
+    <p class="help-ref" id="help-ref"></p>
+  </div>
+</div>
+<div id="sheet-host" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script>
+(function(){
+"use strict";
+
+/* ================= Data ================= */
+const STORE_KEY = "liftingPlan.s320.v2";
+const PH = 3.2; // boom foot height (m)
+
+// Demonstration load chart (tonnes): 50 t mobile crane, full outriggers, 360°. Not a real chart.
+const LC = {
+  booms:[10.0,15.2,20.4,25.6,30.8,36.0],
+  radii:[3,4,5,6,7,8,9,10,12,14,16,18,20,22,24,26,28,30,32],
+  cap:[
+    [50.0,38.0,null,null,null,null],[40.5,35.5,27.0,null,null,null],[34.0,31.0,25.5,20.0,null,null],
+    [29.5,27.0,23.5,18.5,14.5,null],[25.5,23.5,21.0,17.0,13.5,10.5],[22.0,20.5,18.8,15.6,12.6,9.8],
+    [19.0,18.0,16.8,14.3,11.7,9.2],[null,15.8,15.0,13.0,10.9,8.6],[null,12.4,12.0,11.0,9.4,7.6],
+    [null,null,9.6,9.1,8.1,6.7],[null,null,7.8,7.4,6.9,5.9],[null,null,null,6.1,5.8,5.2],
+    [null,null,null,5.0,4.9,4.6],[null,null,null,4.1,4.0,3.9],[null,null,null,null,3.4,3.3],
+    [null,null,null,null,2.9,2.8],[null,null,null,null,2.4,2.4],[null,null,null,null,null,2.1],[null,null,null,null,null,1.8]
+  ]
+};
+
+const CRIT = [
+  {id:"overPP", t:"ยกเหนือสายไฟฟ้า หรือเหนือเครื่องจักรในกระบวนการผลิต", s:"เป็น Critical lift เมื่อน้ำหนักเกิน 50% ของพิกัด"},
+  {id:"tandem", t:"ต้องใช้ปั้นจั่น 2 คัน (Two booms)", s:"เป็น Critical lift ทันที"},
+  {id:"poles",  t:"มีการติดตั้งเสาหรือเดอร์ริกปั้นจั่น", s:"เป็น Critical lift ทันที"},
+  {id:"travel", t:"ปั้นจั่นต้องเคลื่อนที่ขณะแขวนของ", s:"เป็น Critical lift เมื่อของที่แขวนมีอันตราย หรือเกิน 50% ของพิกัด"},
+  {id:"travelHaz", t:"ของที่แขวนขณะเคลื่อนที่มีอันตรายที่ระบุได้", s:"ใช้ร่วมกับข้อด้านบน"}
+];
+
+const CHECKS = [
+  {id:"c1",  t:"สภาพอากาศเหมาะสม และกำหนดความเร็วลมสูงสุดแล้ว"},
+  {id:"c2",  t:"พื้นรับน้ำหนักได้ ปูแผ่นรองตามที่ต้องการ และงานสำรวจหรือขุดตรวจเสร็จแล้ว"},
+  {id:"c3",  t:"กางขาปั้นจั่นสุด (Outriggers fully extended)"},
+  {id:"c4",  t:"ปั้นจั่นอยู่ในสภาพที่ยอมรับได้ และส่งผลตรวจปั้นจั่นให้ NatureWorks แล้ว"},
+  {id:"c5",  t:"กำหนดรัศมีวงสวิงและเส้นทางยก มีแบบหรือภาพร่างส่ง NatureWorks"},
+  {id:"c6",  t:"ทวนสอบระยะห่างในการยก (Lifting clearances) มีแบบหรือภาพร่างแสดง"},
+  {id:"c7",  t:"ทดสอบยก (Test lift) แล้ว ระยะห่างเหมาะสม"},
+  {id:"c8",  t:"ใช้หรือพิจารณาระบบแสดงภาระ / LMI / Load limiter แล้ว"},
+  {id:"c9",  t:"ติดตั้งตุ้มถ่วงถูกต้องตามการคำนวณน้ำหนัก"},
+  {id:"c10", t:"ระบุและใช้จุดผูกเชือกประคอง (Tag line)"},
+  {id:"c11", t:"ผู้บังคับปั้นจั่นผ่านการรับรอง และส่งคุณสมบัติให้ NatureWorks แล้ว"},
+  {id:"c12", t:"ผู้ให้สัญญาณผ่านการรับรอง และกำหนดวิธีสื่อสารสำหรับงานยกแล้ว"},
+  {id:"c13", t:"ผู้ยึดเกาะวัสดุผ่านการรับรอง"},
+  {id:"c14", t:"หูยก / คานยกผ่านการตรวจ", s:"หูยกหรือคานยกที่ทำขึ้นเฉพาะงาน ต้องมีแบบที่วิศวกรอนุมัติและผ่าน NDT"},
+  {id:"c15", t:"มีวัสดุรองกันสลิง / สายรัด / โซ่ถูกบาด (Softeners)"},
+  {id:"c16", t:"หาจุดศูนย์ถ่วงของชิ้นงานแล้ว"},
+  {id:"c17", t:"กำหนดรูปแบบการผูกรัดให้ชิ้นงานสมดุล และแสดงไว้ในแบบ"},
+  {id:"c18", t:"ยืนยันการวางทิศทางของชิ้นงาน (Orientation)"},
+  {id:"c19", t:"NatureWorks อนุมัติแผนงานยก และประชุมทบทวนแผนแล้ว"},
+  {id:"c20", t:"อุปกรณ์ยกทุกชิ้นมีพิกัดเพียงพอสำหรับน้ำหนักที่จะยก"},
+  {id:"c21", t:"ตรวจคานยก สลิง และ Shackle ตามเอกสารแนบ 3 ก่อนยกแล้ว"},
+  {id:"c22", t:"วางแผนวิธีปลดอุปกรณ์ยกแล้ว"},
+  {id:"c23", t:"กั้นเขตพื้นที่งานยกแล้ว"},
+  {id:"c24", t:"ผู้บังคับปั้นจั่นและหัวหน้างานยกมีสำเนา Safe Work Permit และใบอนุญาตงานยกก่อนเริ่มยก", s:"S-320 II.C"}
+];
+const CHECKS_OH = [
+  {id:"o1", t:"มีสวิตช์หยุดอัตโนมัติ และกันชนที่ปลายรางทั้งสองข้าง", s:"S-320 E: ปั้นจั่นเหนือศีรษะและปั้นจั่นขาสูง"},
+  {id:"o2", t:"ไม่มีสิ่งกีดขวางการเลื่อนของล้อหรือแขนเครน"}
+];
+const SIGS = [
+  {id:"r1", role:"ผู้ทบทวนคนที่ 1", sub:"ผู้ประสานงานยก / หัวหน้างาน กรอกการคำนวณและลงนาม"},
+  {id:"r2", role:"ผู้ทบทวนคนที่ 2", sub:"คำนวณแยกอิสระ เช่น ผู้บังคับปั้นจั่น", critOnly:true},
+  {id:"nw", role:"ตัวแทน NatureWorks", sub:"เจ้าของพื้นที่ / ผู้จัดการฝ่ายซ่อมบำรุง / ผู้ได้รับมอบหมาย", critOnly:true}
+];
+const PINS = ["1/2","5/8","3/4","7/8","1","1-1/8","1-1/4","1-3/8","1-1/2","1-5/8","2","2-1/4","2-3/4","3-1/4"];
+const OH_TYPES = {sg:"Overhead crane คานเดี่ยว", dg:"Overhead crane คานคู่", gantry:"Gantry crane", jib:"Jib crane", mono:"Monorail hoist"};
+const SLING_TYPES = {wire:"Wire rope sling", web:"Synthetic web sling", round:"Round sling", chain:"Steel chain sling", mesh:"Metal-mesh sling"};
+const HITCH = {vertical:"ตรง (Vertical)", choker:"รัดคอ (Choker)", basket:"Basket"};
+const WSRC = {nameplate:"Nameplate", drawing:"Drawing", calc:"คำนวณ", weighed:"ชั่งจริง"};
+
+function todayISO(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+
+const BASE = {
+  isExample:false, craneType:"mobile", docNo:"", ptw:"", task:"", area:"", pickset:"", date:"", time:"",
+  supervisor:"", supTrain:"", operator:"", opTrain:"", signalman:"", sigTrain:"", rigger:"", rigTrain:"",
+  cond:"new", wsrc:"nameplate", loadW:"", ballW:"0", hookW:"", beamW:"0", rigW:"", allowW:"0", otherW:"0",
+  craneName:"", craneId:"", inspExp:"",
+  ohType:"dg", hoist:"main", swlCrane:"", swlHoist:"", span:"", hookH:"", obstH:"", clearReq:"0.5", loadHt:"", outdoor:false,
+  craneW:"", boom:"", radiusPick:"", radiusSet:"", capMode:"chart", capRear:"", capFront:"", capSide:"",
+  legs:2, hitch:"vertical", slingType:"wire", slingSize:"", slingLen:"", wll:"", spread:"", slingAng:"60", pinSize:"", shackleCap:"",
+  outMode:"auto", outManual:"", padW:"", padL:"", ground:"", wind:"", windLim:"9.8",
+  crit:{overPP:false,tandem:false,poles:false,travel:false,travelHaz:false},
+  powerNear:false, kV:"", powerDist:"",
+  cl:{}, calcMatch:false,
+  sigs:{r1:{name:"",img:null,at:null}, r2:{name:"",img:null,at:null}, nw:{name:"",img:null,at:null}}
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+const mk = over => Object.assign(clone(BASE), clone(over));
+
+const EXAMPLE = mk({
+  isExample:true, craneType:"mobile",
+  docNo:"LP-2611-014", ptw:"SWP-2611-0387",
+  task:"ยกติดตั้ง Heat Exchanger E-201 ขึ้นฐานราก", area:"Process Unit B ข้าง Pipe rack ฝั่งเหนือ", pickset:"ลานวางของฝั่งตะวันออก → ฐานราก E-201",
+  date:"2026-11-20", time:"08:30",
+  supervisor:"วิชัย แก้วมณี", supTrain:"2025-06-12", operator:"ประเสริฐ บุญมา", opTrain:"2025-03-05",
+  signalman:"อนุชา ทองดี", sigTrain:"2024-12-10", rigger:"สมศักดิ์ พรหมมา", rigTrain:"2025-09-20",
+  cond:"used", wsrc:"nameplate", loadW:"10200", ballW:"0", hookW:"450", beamW:"0", rigW:"350", allowW:"300", otherW:"0",
+  craneName:"ปั้นจั่นเคลื่อนที่ 50 ตัน (Load chart สาธิต)", craneId:"MC-050", inspExp:"2027-01-15",
+  craneW:"36000", boom:"24", radiusPick:"7.2", radiusSet:"8.6", capMode:"chart",
+  legs:4, hitch:"vertical", slingType:"wire", slingSize:"Ø 22 mm", slingLen:"4.0", wll:"8", slingAng:"60", pinSize:"1-1/8", shackleCap:"9.5",
+  outMode:"auto", padW:"1.5", padL:"1.5", ground:"20", wind:"6.2", windLim:"9.8",
+  crit:{overPP:true,tandem:false,poles:false,travel:false,travelHaz:false},
+  cl:{c1:"y",c2:"y",c3:"y",c4:"y",c5:"y",c6:"y",c7:"",c8:"y",c9:"y",c10:"y",c11:"y",c12:"y",c13:"y",c14:"y",c15:"na",c16:"y",c17:"y",c18:"y",c19:"",c20:"y",c21:"y",c22:"y",c23:"y",c24:""},
+  sigs:{r1:{name:"วิชัย แก้วมณี",img:null,at:null,demo:true}, r2:{name:"ประเสริฐ บุญมา",img:null,at:null}, nw:{name:"",img:null,at:null}}
+});
+
+const EXAMPLE_OH = mk({
+  isExample:true, craneType:"overhead",
+  docNo:"LP-2611-015", ptw:"SWP-2611-0392",
+  task:"ยกโรเตอร์ปั๊ม P-305A ออกจากเคสเพื่อซ่อมบำรุง", area:"Maintenance Workshop ช่องเครนที่ 2", pickset:"แท่นปั๊ม P-305A → แท่นซ่อมในโรงซ่อม",
+  date:"2026-11-21", time:"09:00",
+  supervisor:"วิชัย แก้วมณี", supTrain:"2025-06-12", operator:"ณัฐพล สายทอง", opTrain:"2025-08-01",
+  signalman:"อนุชา ทองดี", sigTrain:"2025-11-02", rigger:"สมศักดิ์ พรหมมา", rigTrain:"2025-09-20",
+  cond:"used", wsrc:"nameplate", loadW:"5200", beamW:"600", rigW:"250", allowW:"0", otherW:"0",
+  craneName:"Overhead crane 10 ตัน ช่องเครนที่ 2", craneId:"OHC-02", inspExp:"2027-03-31",
+  ohType:"dg", hoist:"main", swlCrane:"10000", swlHoist:"10000", span:"18", hookH:"8.5", obstH:"2.4", clearReq:"0.5", loadHt:"1.2", outdoor:false,
+  legs:2, hitch:"vertical", slingType:"wire", slingSize:"Ø 16 mm", slingLen:"2.0", wll:"5", spread:"1.6", slingAng:"60", pinSize:"7/8", shackleCap:"6.5",
+  wind:"", windLim:"",
+  cl:{c1:"na",c2:"na",c3:"na",c4:"y",c5:"y",c6:"y",c7:"y",c8:"na",c9:"na",c10:"y",c11:"y",c12:"y",c13:"y",c14:"y",c15:"y",c16:"y",c17:"y",c18:"y",c19:"na",c20:"y",c21:"y",c22:"",c23:"",c24:"y",o1:"y",o2:"y"},
+  sigs:{r1:{name:"วิชัย แก้วมณี",img:null,at:null,demo:true}, r2:{name:"",img:null,at:null}, nw:{name:"",img:null,at:null}}
+});
+const exampleFor = t => t==="overhead" ? EXAMPLE_OH : EXAMPLE;
+function blankPlan(type){ const p = mk({craneType: type==="overhead"?"overhead":"mobile", date:todayISO(), docNo:"LP-"+todayISO().slice(2,4)+todayISO().slice(5,7)+"-001"}); if(type==="overhead"){ p.windLim=""; } return p; }
+
+function loadState(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw){ const o = JSON.parse(raw); if(o && typeof o==="object" && o.sigs && o.sigs.r1){ const b = mk({}); return Object.assign(b, o, {crit:Object.assign(b.crit, o.crit||{}), cl:o.cl||{}}); } } }catch(e){}
+  return clone(EXAMPLE);
+}
+let S = loadState();
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(STORE_KEY, JSON.stringify(S)); }catch(e){} }, 250); }
+
+/* ================= Helpers ================= */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const num = v => { const x = parseFloat(v); return Number.isFinite(x) ? x : 0; };
+const has = v => v!==undefined && v!==null && String(v).trim()!=="";
+const f1 = n => Number.isFinite(n) ? n.toFixed(1) : "—";
+const f2 = n => Number.isFinite(n) ? n.toFixed(2) : "—";
+const kg = n => Number.isFinite(n) ? Math.round(n).toLocaleString("en-US") : "—";
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const getPath = (o,p) => p.split(".").reduce((a,k)=>a==null?a:a[k], o);
+function setPath(o,p,v){ const ks=p.split("."); let a=o; for(let i=0;i<ks.length-1;i++){ if(a[ks[i]]==null||typeof a[ks[i]]!=="object") a[ks[i]]={}; a=a[ks[i]]; } a[ks[ks.length-1]]=v; }
+const RANK = {ok:0, idle:1, warn:2, bad:3};
+const worst = (...t) => t.filter(Boolean).reduce((a,b)=> RANK[b]>RANK[a]?b:a, "ok");
+function thDate(iso){ if(!iso) return "—"; const d=new Date(iso+"T00:00:00"); if(isNaN(d)) return "—"; return d.toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric"}); }
+function thDateTime(ts){ const d=new Date(ts); return d.toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"2-digit"})+" "+d.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"}); }
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function chartLookup(L,R){
+  const bi = LC.booms.findIndex(b => b >= L - 1e-9);
+  if(bi<0) return {err:"บูมยาวเกินกว่าที่มีใน load chart"};
+  const ri = LC.radii.findIndex(r => r >= R - 1e-9);
+  if(ri<0) return {err:"รัศมีไกลเกินกว่าที่มีใน load chart", bi};
+  const v = LC.cap[ri][bi];
+  if(v==null) return {err:`ไม่มีพิกัดยกที่บูม ${LC.booms[bi]} ม. รัศมี ${LC.radii[ri]} ม.`, bi, ri};
+  return {cap:v, bi, ri};
+}
+const checklistFor = type => type==="overhead" ? CHECKS.concat(CHECKS_OH) : CHECKS;
+
+/* ================= Calculation ================= */
+function compute(s){
+  const r = {};
+  const OH = r.OH = s.craneType==="overhead";
+  r.type = OH ? "overhead" : "mobile"; r.ohType = s.ohType || "dg";
+  r.exempt = OH && r.ohType!=="gantry";
+
+  // ---- weights (kg) per S-320 Attachment 1 B ----
+  r.loadW=num(s.loadW); r.ballW=OH?0:num(s.ballW); r.hookW=OH?0:num(s.hookW);
+  r.beamW=num(s.beamW); r.rigW=num(s.rigW); r.allowW=num(s.allowW); r.otherW=num(s.otherW);
+  r.gross = r.loadW + r.ballW + r.hookW + r.beamW + r.rigW + r.allowW + r.otherW;
+
+  // ---- mobile geometry ----
+  r.L=num(s.boom); r.Rp=num(s.radiusPick); r.Rs=num(s.radiusSet); r.R=Math.max(r.Rp, r.Rs);
+  const angAt = x => (r.L>0 && x>0 && x<r.L) ? Math.acos(x/r.L)*180/Math.PI : null;
+  r.angP = angAt(r.Rp); r.angS = angAt(r.Rs); r.ang = angAt(r.R);
+  r.geomOk = r.ang!=null;
+  r.tipH = r.geomOk ? r.L*Math.sin(r.ang*Math.PI/180) + PH : null;
+  r.lk = (r.L>0 && r.R>0) ? chartLookup(r.L, r.R) : {err:"กรอกความยาวบูมและรัศมี"};
+  r.manual = s.capMode==="manual";
+  r.dirs = {rear:num(s.capRear), front:num(s.capFront), side:num(s.capSide)};
+  const dv = Object.values(r.dirs).filter(v=>v>0);
+  r.swlC=num(s.swlCrane); r.swlH=num(s.swlHoist);
+  if(OH) r.cap = (r.swlC>0 && r.swlH>0) ? Math.min(r.swlC, r.swlH) : Math.max(r.swlC, r.swlH);
+  else r.cap = r.manual ? (dv.length ? Math.min(...dv) : 0) : (r.lk.cap ? r.lk.cap*1000 : 0);
+  r.pct = (r.cap>0 && r.gross>0) ? r.gross/r.cap*100 : null;
+  r.cap95 = r.cap>0 ? r.cap*0.95 : null;
+
+  // ---- sling & shackle ----
+  r.legs = +s.legs || 1; r.legsEff = r.legs===1 ? 1 : 2;
+  r.sAng = r.legs===1 ? 90 : num(s.slingAng);
+  r.factor = r.sAng>0 ? 1/Math.sin(Math.min(r.sAng,90)*Math.PI/180) : null;
+  r.slingLoad = r.loadW + r.allowW + r.otherW + r.beamW;          // kg
+  r.tension = (r.factor && r.slingLoad>0) ? r.slingLoad/1000*r.factor/r.legsEff : null; // t
+  r.wll = num(s.wll);
+  r.slingPct = (r.wll>0 && r.tension!=null) ? r.tension/r.wll*100 : null;
+  r.shCap = num(s.shackleCap);
+
+  // ---- ground (mobile) ----
+  r.craneW = num(s.craneW);
+  r.outManual = s.outMode==="manual";
+  r.react = r.outManual ? num(s.outManual) : 0.75*(r.craneW + r.gross); // kg
+  r.padA = num(s.padW)*num(s.padL);
+  r.press = (r.padA>0 && r.react>0) ? r.react/1000/r.padA : null;       // t/m2
+  r.allow = num(s.ground);
+  r.groundPct = (r.press!=null && r.allow>0) ? r.press/r.allow*100 : null;
+
+  // ---- wind ----
+  r.outdoor = !!s.outdoor; r.windApplies = !OH || r.outdoor;
+  r.wind = num(s.wind); r.windLim = num(s.windLim);
+  r.windPct = (has(s.wind) && r.windLim>0) ? r.wind/r.windLim*100 : null;
+
+  // ---- overhead headroom ----
+  r.span=num(s.span); r.hookHmax=num(s.hookH); r.obst=num(s.obstH);
+  r.clear = has(s.clearReq) ? num(s.clearReq) : 0.5; r.loadHt=num(s.loadHt); r.spread=num(s.spread);
+  r.slingH = r.legs===1 ? 1.0 : ((r.spread>0 && r.sAng>0) ? (r.spread/2)*Math.tan(Math.min(r.sAng,89)*Math.PI/180) : null);
+  r.reqHook = (has(s.obstH) && r.loadHt>0 && r.slingH!=null) ? r.obst + r.clear + r.loadHt + r.slingH : null;
+  r.headMargin = (r.reqHook!=null && r.hookHmax>0) ? r.hookHmax - r.reqHook : null;
+  r.headPct = (r.reqHook!=null && r.hookHmax>0) ? r.reqHook/r.hookHmax*100 : null;
+
+  // ---- power line (S-320 E) ----
+  r.power = !!s.powerNear; r.kV = num(s.kV); r.pDist = num(s.powerDist);
+  r.pReq = has(s.kV) ? 3 + Math.max(0, r.kV-50)*0.01 : null;
+
+  // ---- dates ----
+  const liftD = has(s.date) ? new Date(s.date+"T00:00:00") : new Date(todayISO()+"T00:00:00");
+  r.inspDays = has(s.inspExp) ? Math.round((new Date(s.inspExp+"T00:00:00") - liftD)/864e5) : null;
+  const roles = [["supervisor","supTrain","ผู้ประสานงานยก"],["operator","opTrain","ผู้บังคับปั้นจั่น"],["signalman","sigTrain","ผู้ให้สัญญาณ"],["rigger","rigTrain","ผู้ยึดเกาะวัสดุ"]];
+  r.train = roles.map(([nk,dk,lab])=>{
+    if(!has(s[nk])) return {lab, state:"none"};
+    if(!has(s[dk])) return {lab, name:s[nk], state:"missing"};
+    const d = new Date(s[dk]+"T00:00:00"); const exp = new Date(d); exp.setFullYear(exp.getFullYear()+2);
+    const left = Math.round((exp - liftD)/864e5);
+    return {lab, name:s[nk], date:s[dk], exp, left, state: left<0 ? "expired" : left<30 ? "soon" : "ok"};
+  });
+
+  // ---- checks ----
+  const C = [];
+  const pctTxt = r.pct!=null ? r.pct.toFixed(1)+"%" : "—";
+  {
+    let tone, meta;
+    if(!(r.gross>0)){ tone="idle"; meta="รอน้ำหนักชิ้นงาน"; }
+    else if(OH && !(r.cap>0)){ tone="idle"; meta="กรอกพิกัดยกของเครนและรอก"; }
+    else if(!OH && (!(r.L>0) || !(r.R>0))){ tone="idle"; meta="รอความยาวบูมและรัศมี"; }
+    else if(!OH && !r.geomOk){ tone="bad"; meta="รัศมีต้องน้อยกว่าความยาวบูม"; }
+    else if(!OH && !r.manual && r.lk.err){ tone="bad"; meta=r.lk.err; }
+    else if(!(r.cap>0)){ tone="idle"; meta="กรอกพิกัดยกจาก load chart"; }
+    else if(r.exempt){
+      if(r.pct>100){ tone="bad"; meta="เกินพิกัดยกที่ระบุบนป้าย"; } else { tone="ok"; meta="ไม่เกินพิกัดที่ระบุ (S-320 ข้อ F)"; }
+    }
+    else if(r.pct>=95){ tone="bad"; meta="ไม่น้อยกว่า 95% ของพิกัด S-320 ไม่อนุญาตให้ยก"; }
+    else if(r.pct>75){ tone="warn"; meta="เกิน 75% เป็น Critical lift"; }
+    else { tone="ok"; meta="น้อยกว่า 95% ยกได้ตาม S-320"; }
+    C.push({id:"cap", label:OH?"พิกัดยกเครน":"พิกัดยกปั้นจั่น", val:pctTxt, meta, tone});
+  }
+  {
+    let tone, meta, val="—";
+    if(r.tension==null){ tone="idle"; meta="รอน้ำหนักชิ้นงานและมุมสลิง"; }
+    else if(!(r.wll>0)){ tone="idle"; meta="กรอกพิกัดสลิง (WLL)"; val=f2(r.tension)+" t"; }
+    else { val=r.slingPct.toFixed(0)+"%"; meta=`${f2(r.tension)} จาก ${f1(r.wll)} ตันต่อเส้น`;
+      tone = r.slingPct>100 ? "bad" : r.slingPct>90 ? "warn" : "ok"; if(r.slingPct>100) meta="แรงตึงเกินพิกัดสลิง "+meta; }
+    C.push({id:"sling", label:"แรงตึงสลิง", val, meta, tone});
+  }
+  {
+    let tone, meta;
+    if(r.legs===1){ tone="ok"; meta="ยกแนวดิ่งเส้นเดียว"; }
+    else if(!(r.sAng>0)){ tone="idle"; meta="กรอกมุมสลิง"; }
+    else if(r.sAng<45){ tone="warn"; meta="ต่ำกว่า 45° ต้องแนบการคำนวณแรงรับ (S-320)"; }
+    else { tone="ok"; meta="ไม่น้อยกว่า 45° ตาม S-320"; }
+    C.push({id:"angle", label:"มุมสลิง", val:r.legs===1?"90°":(r.sAng>0?r.sAng.toFixed(0)+"°":"—"), meta, tone});
+  }
+  {
+    let tone, meta, val="—";
+    if(!(r.shCap>0)){ tone="idle"; meta="กรอกพิกัด Shackle"; }
+    else if(r.tension==null){ tone="idle"; meta="รอแรงตึงสลิง"; val=f1(r.shCap)+" t"; }
+    else { val=(r.tension/r.shCap*100).toFixed(0)+"%"; meta=`แรงตึง ${f2(r.tension)} จากพิกัด ${f1(r.shCap)} ตัน${has(s.pinSize)?" (หมุด "+s.pinSize+"\")":""}`;
+      tone = r.tension>r.shCap ? "bad" : "ok"; if(r.tension>r.shCap) meta="Shackle รับไม่ไหว "+meta; }
+    C.push({id:"shackle", label:"Shackle", val, meta, tone});
+  }
+  if(OH){
+    let tone, meta, val="—";
+    if(!(r.hookHmax>0)){ tone="idle"; meta="กรอกความสูงตะขอสูงสุด"; }
+    else if(r.reqHook==null){ tone="idle"; meta=r.legs>1 && !(r.spread>0) ? "กรอกระยะห่างจุดยกบนชิ้นงาน" : "กรอกความสูงสิ่งกีดขวางและชิ้นงาน"; }
+    else { const m=r.headMargin; val=(m<0?"−":"")+f2(Math.abs(m))+" m";
+      if(m<0){ tone="bad"; meta=`ยกไม่พ้นสิ่งกีดขวาง ขาดอีก ${f2(-m)} ม.`; }
+      else if(m<0.3){ tone="warn"; meta=`ตะขอเหลือระยะน้อย ${f2(m)} ม.`; }
+      else { tone="ok"; meta=`ตะขอเหลือระยะ ${f2(m)} ม.`; } }
+    C.push({id:"head", label:"ระยะยกพ้นสิ่งกีดขวาง", val, meta, tone});
+  } else {
+    let tone, meta, val="—";
+    if(r.press==null){ tone="idle"; meta="กรอกขนาดแผ่นรองและน้ำหนักปั้นจั่น"; }
+    else if(!(r.allow>0)){ tone="idle"; meta="กรอกความสามารถรับน้ำหนักของพื้น"; val=f1(r.press)+" t/m²"; }
+    else { val=r.groundPct.toFixed(0)+"%"; meta=`${f1(r.press)} จาก ${f1(r.allow)} ตัน/ม²`;
+      tone = r.groundPct>100 ? "bad" : r.groundPct>90 ? "warn" : "ok"; if(r.groundPct>100) meta="พื้นรับไม่ไหว "+meta; }
+    C.push({id:"ground", label:"แรงกดบนพื้น", val, meta, tone});
+  }
+  if(r.windApplies){
+    let tone, meta, val="—";
+    if(r.windPct==null){ tone="idle"; meta="กรอกความเร็วลมและค่าสูงสุดที่กำหนด"; }
+    else { val=f1(r.wind)+" m/s"; meta=`ค่าสูงสุดที่กำหนด ${f1(r.windLim)} ม./วินาที`;
+      tone = r.wind>r.windLim ? "bad" : r.windPct>80 ? "warn" : "ok"; if(r.wind>r.windLim) meta="ลมแรงเกิน "+meta; }
+    C.push({id:"wind", label:"ความเร็วลม", val, meta, tone});
+  }
+  {
+    let tone, meta, val="—";
+    const form = OH ? "ปจ.1" : "ปจ.2";
+    if(r.inspDays==null){ tone="idle"; meta=`ระบุวันหมดอายุผลตรวจ ${form}`; }
+    else if(r.inspDays<0){ tone="bad"; meta="ผลตรวจหมดอายุก่อนวันยก"; val="หมดอายุ"; }
+    else { val=`${r.inspDays} วัน`; meta=`ใช้ได้ถึง ${thDate(s.inspExp)}`; tone = r.inspDays<14 ? "warn" : "ok"; if(r.inspDays<14) meta="ใกล้หมดอายุ "+meta; }
+    C.push({id:"insp", label:`ผลตรวจ ${form}`, val, meta, tone});
+  }
+  {
+    const named = r.train.filter(t=>t.state!=="none");
+    let tone, meta, val="—";
+    if(!named.length){ tone="idle"; meta="กรอกชื่อทีมงานและวันที่อบรม"; }
+    else {
+      const exp = named.filter(t=>t.state==="expired"), miss = named.filter(t=>t.state==="missing"), soon = named.filter(t=>t.state==="soon");
+      val = `${named.length-exp.length-miss.length}/${named.length}`;
+      if(exp.length){ tone="bad"; meta=`${exp.map(t=>t.lab).join(", ")} อบรมเกิน 2 ปี ต้องทบทวนก่อน`; }
+      else if(miss.length){ tone="idle"; meta=`ยังไม่ระบุวันที่อบรม: ${miss.map(t=>t.lab).join(", ")}`; }
+      else if(soon.length){ tone="warn"; meta=`${soon.map(t=>t.lab+" เหลือ "+t.left+" วัน").join(", ")} จะครบ 2 ปี`; }
+      else { tone="ok"; meta="อบรมหรือทบทวนภายใน 2 ปีครบทุกคน"; }
+    }
+    C.push({id:"train", label:"การอบรมทีมงาน", val, meta, tone});
+  }
+  if(r.power){
+    let tone, meta, val="—";
+    if(r.pReq==null || !has(s.powerDist)){ tone="idle"; meta="กรอกแรงดันและระยะห่างจากสายไฟ"; }
+    else { val=f2(r.pDist)+" m"; meta=`ต้องห่างอย่างน้อย ${f2(r.pReq)} ม. ที่ ${r.kV} kV`; tone = r.pDist<r.pReq ? "bad" : "ok"; if(r.pDist<r.pReq) meta="ใกล้สายไฟเกินกำหนด "+meta; }
+    C.push({id:"power", label:"ระยะห่างสายไฟฟ้า", val, meta, tone});
+  }
+
+  // ---- S-320 critical criteria ----
+  const p = r.pct;
+  r.critEval = [
+    {t:"น้ำหนักรวมเกิน 75% ของพิกัดยก", met: p!=null && p>75, note: p!=null ? `ใช้ ${pctTxt}` : "รอข้อมูล"},
+    {t:"ยกเหนือสายไฟหรือเครื่องจักรในกระบวนการผลิต และเกิน 50%", met: !!s.crit.overPP && p!=null && p>50, note: !s.crit.overPP ? "ไม่มีในงานนี้" : (p!=null && p>50 ? `ใช้ ${pctTxt}` : `ยกเหนือ แต่ใช้ ${pctTxt} ไม่เกิน 50%`)},
+    {t:"ต้องใช้ปั้นจั่น 2 คัน", met: !!s.crit.tandem, note: s.crit.tandem ? "มีในงานนี้" : "ไม่มีในงานนี้"},
+    {t:"มีการติดตั้งเสาหรือเดอร์ริก", met: !!s.crit.poles, note: s.crit.poles ? "มีในงานนี้" : "ไม่มีในงานนี้"},
+    {t:"เคลื่อนที่ขณะแขวนของที่มีอันตราย หรือเกิน 50%", met: !!s.crit.travel && (!!s.crit.travelHaz || (p!=null && p>50)), note: !s.crit.travel ? "ไม่มีในงานนี้" : (s.crit.travelHaz ? "ของที่แขวนมีอันตราย" : `ใช้ ${pctTxt}`)}
+  ];
+  r.critReasons = r.exempt ? [] : r.critEval.filter(c=>c.met).map(c=>c.t);
+
+  // ---- checklist ----
+  r.CK = checklistFor(r.type);
+  const ans = id => (s.cl && s.cl[id]) || "";
+  r.clAnswered = r.CK.filter(c=>ans(c.id)!=="").length;
+  r.clNo = r.CK.filter(c=>ans(c.id)==="n").length;
+  r.clTotal = r.CK.length;
+  r.clDone = r.clAnswered===r.clTotal && r.clNo===0;
+
+  // ---- verdict ----
+  const evalIds = ["cap","sling","angle","shackle","ground","head","wind","insp","train","power"];
+  const blockers = C.filter(c=>evalIds.includes(c.id) && c.tone==="bad");
+  const idles = C.filter(c=>evalIds.includes(c.id) && c.tone==="idle");
+  let verdict;
+  if(C[0].tone==="idle") verdict="pending";
+  else if(blockers.length) verdict="nogo";
+  else if(r.critReasons.length) verdict="critical";
+  else verdict="normal";
+  r.verdict = verdict;
+  r.isCritical = !r.exempt && r.critReasons.length>0;
+
+  r.sigReq = SIGS.filter(g=>!g.critOnly || r.isCritical).map(g=>g.id);
+  r.sigDone = r.sigReq.filter(id=>{ const g=s.sigs && s.sigs[id]; return g && g.img && has(g.name); }).length;
+  r.matchOk = !r.isCritical || !!s.calcMatch;
+
+  C.push({id:"check", label:"แบบตรวจสอบก่อนยก", val:`${r.clAnswered}/${r.clTotal}`, meta: r.clNo ? `ตอบ “ไม่ใช่” ${r.clNo} ข้อ ต้องแก้ก่อนยก` : (r.clAnswered===r.clTotal ? "ตอบครบทุกข้อ" : `ยังไม่ได้ตอบ ${r.clTotal-r.clAnswered} ข้อ`), tone: r.clNo ? "bad" : (r.clDone ? "ok" : "warn")});
+  C.push({id:"sign", label:"ทวนสอบและอนุมัติ", val:`${r.sigDone}/${r.sigReq.length}`, meta: r.sigDone<r.sigReq.length ? "ยังลงนามไม่ครบ" : (!r.matchOk ? "ยังไม่ยืนยันผลคำนวณตรงกัน" : "ครบ"), tone: (r.sigDone===r.sigReq.length && r.matchOk) ? "ok" : "warn"});
+  r.checks = C;
+
+  r.ready = (verdict==="normal"||verdict==="critical") && idles.length===0 && r.clDone && r.sigDone===r.sigReq.length && r.matchOk;
+
+  const reasons = [];
+  if(verdict==="pending") reasons.push({tone:"idle", text:"กรอกน้ำหนักชิ้นงานและข้อมูลปั้นจั่น"});
+  if(verdict==="nogo") blockers.forEach(b=>reasons.push({tone:"bad", text:`${b.label}: ${b.meta}`}));
+  if(verdict==="critical"||verdict==="nogo") r.critReasons.forEach(t=>reasons.push({tone:"warn", text:t}));
+  if(verdict==="normal"||verdict==="critical"){
+    C.filter(c=>evalIds.includes(c.id) && c.tone==="warn" && c.id!=="cap").forEach(c=>reasons.push({tone:"warn", text:`${c.label}: ${c.meta}`}));
+    idles.forEach(b=>reasons.push({tone:"idle", text:`ยังไม่ได้ประเมิน${b.label}`}));
+    if(!r.clDone) reasons.push({tone:r.clNo?"bad":"idle", text: r.clNo ? `แบบตรวจสอบก่อนยกตอบ “ไม่ใช่” ${r.clNo} ข้อ` : `แบบตรวจสอบก่อนยกตอบแล้ว ${r.clAnswered} จาก ${r.clTotal} ข้อ`});
+    if(r.sigDone<r.sigReq.length) reasons.push({tone:"idle", text:`ลงนามแล้ว ${r.sigDone} จาก ${r.sigReq.length} คน`});
+    if(r.isCritical && !s.calcMatch) reasons.push({tone:"idle", text:"ยังไม่ยืนยันว่าผลคำนวณของผู้ทบทวน 2 คนตรงกัน"});
+    if(r.ready) reasons.push({tone:"ok", text:"ผ่านทุกเกณฑ์ ตรวจสอบครบ และลงนามครบ"});
+  }
+  r.reasons = reasons;
+
+  const V = {
+    pending:{tone:"idle", tag:"—", title:"รอข้อมูล", sub:"กรอกข้อมูลการยก ระบบจะประเมินตาม S-320 ให้ทันที", pill:"รอข้อมูล"},
+    nogo:{tone:"bad", tag:"NO-GO", title:"ห้ามยก", sub:"แก้ไขรายการที่ไม่ผ่านก่อน แล้วประเมินใหม่", pill:"NO-GO"},
+    critical:{tone:"warn", tag:"Critical lift", title:"Critical Lift", sub:"ต้องทำใบอนุญาตงานยกที่มีความเสี่ยง ผู้ทบทวน 2 คนคำนวณแยกกัน และตัวแทน NatureWorks อนุมัติร่วมกับ Safe Work Permit", pill:"CRITICAL"},
+    normal: r.exempt
+      ? {tone:"ok", tag:"ยกเว้นตามข้อ F", title:"Normal Lift", sub:"เครนชนิดนี้ไม่ต้องทำ Critical Lift Permit ตาม S-320 ข้อ F แต่ห้ามยกเกินพิกัดที่ระบุ", pill:"NORMAL"}
+      : {tone:"ok", tag:"Normal lift", title:"Normal Lift", sub:"ไม่เข้าเกณฑ์ Critical lift ของ S-320 ยกได้ภายใต้ Safe Work Permit", pill:"NORMAL"}
+  }[verdict];
+  r.V = V;
+  r.pillText = V.pill + (r.pct!=null && verdict!=="pending" ? " · "+r.pct.toFixed(1)+"%" : "");
+  r.capTone = C[0].tone;
+  r.pctTxt = pctTxt;
+  return r;
+}
+
+/* ================= Graphics ================= */
+const PAL_PAGE = {ink:"var(--ink)",muted:"var(--muted)",line:"var(--line)",crane:"var(--crane)",craneDk:"var(--crane-dk)",steel:"var(--steel)",accent:"var(--accent)",accentInk:"var(--accent-ink)",ground:"var(--surface-2)",glass:"var(--glass)",bg:"var(--surface)",font:"var(--font-mono)",body:"var(--font-body)",ok:"var(--ok)",bad:"var(--bad)"};
+const PAL_PRINT = {ink:"#121B24",muted:"#5A6776",line:"#C9D2DB",crane:"#F2B01E",craneDk:"#C98A00",steel:"#3A4654",accent:"#2453D4",accentInk:"#FFFFFF",ground:"#EEF1F4",glass:"#BCD2EC",bg:"#FFFFFF",font:"'IBM Plex Mono',monospace",body:"sans-serif",ok:"#12845A",bad:"#C92D2D"};
+const TONE_VAR = {ok:"var(--ok)",warn:"var(--warn)",bad:"var(--bad)",idle:"var(--idle)"};
+const TONE_HEX = {ok:"#12845A",warn:"#B86200",bad:"#C92D2D",idle:"#6B7887"};
+const TONE_SOFT_HEX = {ok:"#DFF3E9",warn:"#FBEBD3",bad:"#FAE1DF",idle:"#E9EDF1"};
+
+function gaugeSVG(r){
+  const W=300,H=152,cx=150,cy=126,rr=100;
+  const pt = (t,rad) => { const a=Math.PI*(1-t); return [cx+rad*Math.cos(a), cy-rad*Math.sin(a)]; };
+  const arc = (t0,t1,rad) => { const p0=pt(t0,rad), p1=pt(t1,rad); return `M${p0[0].toFixed(2)} ${p0[1].toFixed(2)} A${rad} ${rad} 0 0 1 ${p1[0].toFixed(2)} ${p1[1].toFixed(2)}`; };
+  const tone = r.pct==null ? "idle" : r.capTone;
+  const v = r.pct==null ? 0 : Math.min(r.pct/100,1);
+  const col = TONE_VAR[tone];
+  let g = `<svg class="gauge" viewBox="0 0 ${W} ${H}" role="img" aria-label="ใช้พิกัดยก ${r.pctTxt}">`;
+  g += `<path d="${arc(0,1,rr)}" fill="none" style="stroke:var(--surface-2)" stroke-width="18" stroke-linecap="round"/>`;
+  let marks;
+  if(r.exempt){
+    g += `<path d="${arc(0,1,rr+16)}" fill="none" style="stroke:var(--ok)" stroke-width="4" opacity=".55"/>`;
+    marks = [];
+  } else {
+    const c = (S.crit && S.crit.overPP) ? 0.50 : 0.75;
+    g += `<path d="${arc(0,c,rr+16)}" fill="none" style="stroke:var(--ok)" stroke-width="4" opacity=".55"/>`;
+    g += `<path d="${arc(c,0.95,rr+16)}" fill="none" style="stroke:var(--warn)" stroke-width="4" opacity=".65"/>`;
+    g += `<path d="${arc(0.95,1,rr+16)}" fill="none" style="stroke:var(--bad)" stroke-width="4" opacity=".7"/>`;
+    marks = [[c, Math.round(c*100)], [0.95, 95]];
+  }
+  marks.forEach(([t])=>{ const a=pt(t,rr+11), b=pt(t,rr+22); g+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" style="stroke:var(--muted)" stroke-width="1.5"/>`; });
+  marks.forEach(([t,lab])=>{ const p=pt(t,rr+30); g+=`<text x="${p[0].toFixed(1)}" y="${(p[1]+4).toFixed(1)}" text-anchor="${t>0.55?"start":t<0.45?"end":"middle"}" style="fill:var(--muted);font-family:var(--font-mono);font-size:11px">${lab}</text>`; });
+  if(v>0) g += `<path d="${arc(0,v,rr)}" fill="none" style="stroke:${col}" stroke-width="18" stroke-linecap="round"/>`;
+  g += `<text x="${cx}" y="${cy-16}" text-anchor="middle" style="fill:${tone==="idle"?"var(--muted)":col};font-family:var(--font-mono);font-size:40px;font-weight:600">${r.pct==null?"—":r.pct.toFixed(1)}<tspan style="font-size:20px" dx="2">${r.pct==null?"":"%"}</tspan></text>`;
+  g += `<text x="${cx}" y="${cy+10}" text-anchor="middle" style="fill:var(--muted);font-family:var(--font-body);font-size:13px">ของพิกัดยก</text>`;
+  g += `<text x="${cx-rr}" y="${cy+22}" text-anchor="middle" style="fill:var(--muted);font-family:var(--font-mono);font-size:11px">0</text>`;
+  g += `<text x="${cx+rr}" y="${cy+22}" text-anchor="middle" style="fill:var(--muted);font-family:var(--font-mono);font-size:11px">100</text>`;
+  return g + `</svg>`;
+}
+
+function craneSVG(r, pal, opts){
+  opts = opts||{};
+  const W=440, BOT=54, HMIN=250, HMAX=opts.hmax||360;
+  const mkHead = H => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${opts.px?W*2:"100%"}" ${opts.px?`height="${H*2}"`:""} role="img" aria-label="ภาพด้านข้างปั้นจั่น บูม ${f1(r.L)} เมตร รัศมี ${f1(r.R)} เมตร">`;
+  if(!r.geomOk){
+    const H=HMIN, gy=H-BOT;
+    const msg = (r.L>0 && r.R>0) ? "รัศมีต้องน้อยกว่าความยาวบูม" : "กรอกความยาวบูมและรัศมีเพื่อดูภาพ";
+    return mkHead(H) + `<rect x="0" y="${gy}" width="${W}" height="${H-gy}" style="fill:${pal.ground}"/><line x1="0" y1="${gy}" x2="${W}" y2="${gy}" style="stroke:${pal.muted}" stroke-width="1.2"/><text x="${W/2}" y="${gy/2}" text-anchor="middle" style="fill:${pal.muted};font-family:${pal.body};font-size:14px">${msg}</text></svg>`;
+  }
+  const th = r.ang*Math.PI/180, ux=Math.cos(th), uy=Math.sin(th);
+  const rise = r.L*uy, REAR = 8.6;
+  const LW = Math.min(3.2, Math.max(1.8, r.R*0.32)), LH = LW*0.6;
+  const spanM = REAR + r.R + LW/2 + 1.0, vertM = rise + PH + 0.6;
+  let s = Math.min((W-56)/spanM, 20);
+  let H = Math.round(vertM*s + 24 + BOT);
+  if(H > HMAX){ s = (HMAX-24-BOT)/vertM; H = HMAX; }
+  if(H < HMIN) H = HMIN;
+  const gy = H - BOT, x0 = (W - spanM*s)/2;
+  const X = m => x0 + (REAR+m)*s, Y = m => gy - m*s;
+  const n = v => v.toFixed(1), st = (k,v) => `style="${k}:${v}"`;
+  let g = mkHead(H);
+  g += `<rect x="0" y="${gy}" width="${W}" height="${H-gy}" ${st("fill",pal.ground)}/><line x1="0" y1="${gy}" x2="${W}" y2="${gy}" style="stroke:${pal.muted}" stroke-width="1.2"/>`;
+  [-7.7, 1.9].forEach(p=>{ g += `<rect x="${n(X(p-0.65))}" y="${n(Y(0.24))}" width="${n(1.3*s)}" height="${n(0.24*s)}" rx="1" ${st("fill",pal.steel)}/><rect x="${n(X(p-0.15))}" y="${n(Y(1.2))}" width="${n(0.3*s)}" height="${n(0.96*s)}" ${st("fill",pal.steel)}/>`; });
+  [-6.1,-4.6,-1.4].forEach(w=>{ g += `<circle cx="${n(X(w))}" cy="${n(Y(0.78))}" r="${n(0.56*s)}" ${st("fill",pal.ink)}/><circle cx="${n(X(w))}" cy="${n(Y(0.78))}" r="${n(0.22*s)}" ${st("fill",pal.steel)}/>`; });
+  g += `<rect x="${n(X(-8.6))}" y="${n(Y(1.95))}" width="${n(11.1*s)}" height="${n(0.85*s)}" rx="${n(0.15*s)}" ${st("fill",pal.crane)}/>`;
+  g += `<path d="M${n(X(-8.6))} ${n(Y(1.95))} V${n(Y(3.35))} H${n(X(-7.0))} L${n(X(-6.5))} ${n(Y(2.5))} V${n(Y(1.95))} Z" ${st("fill",pal.crane)}/>`;
+  g += `<path d="M${n(X(-8.3))} ${n(Y(2.45))} V${n(Y(3.1))} H${n(X(-7.15))} L${n(X(-6.85))} ${n(Y(2.45))} Z" ${st("fill",pal.glass)}/>`;
+  g += `<rect x="${n(X(-4.5))}" y="${n(Y(4.1))}" width="${n(2.1*s)}" height="${n(2.1*s)}" rx="${n(0.12*s)}" ${st("fill",pal.steel)}/>`;
+  g += `<rect x="${n(X(-2.6))}" y="${n(Y(3.5))}" width="${n(3.5*s)}" height="${n(1.55*s)}" rx="${n(0.12*s)}" ${st("fill",pal.craneDk)}/>`;
+  g += `<rect x="${n(X(0.4))}" y="${n(Y(3.75))}" width="${n(1.45*s)}" height="${n(1.8*s)}" rx="${n(0.15*s)}" ${st("fill",pal.crane)}/><rect x="${n(X(0.95))}" y="${n(Y(3.5))}" width="${n(0.72*s)}" height="${n(0.85*s)}" rx="1" ${st("fill",pal.glass)}/>`;
+  const P = (along, off) => [X(along*ux - off*uy), Y(PH + along*uy + off*ux)];
+  const w0=0.5, w1=0.3, a=P(-0.9,-w0), b=P(r.L,-w1), c=P(r.L,w1), d=P(-0.9,w0);
+  g += `<path d="M${n(a[0])} ${n(a[1])} L${n(b[0])} ${n(b[1])} L${n(c[0])} ${n(c[1])} L${n(d[0])} ${n(d[1])} Z" style="fill:${pal.crane};stroke:${pal.craneDk};stroke-width:1"/>`;
+  [0.32,0.54,0.76].forEach(k=>{ const hw=w0+(w1-w0)*k, p1=P(r.L*k,-hw), p2=P(r.L*k,hw); g+=`<line x1="${n(p1[0])}" y1="${n(p1[1])}" x2="${n(p2[0])}" y2="${n(p2[1])}" style="stroke:${pal.craneDk}" stroke-width="1.4"/>`; });
+  const foot=P(0,0), tip=P(r.L,0);
+  g += `<circle cx="${n(foot[0])}" cy="${n(foot[1])}" r="${n(Math.max(2.5,0.28*s))}" ${st("fill",pal.steel)}/><circle cx="${n(tip[0])}" cy="${n(tip[1])}" r="${n(Math.max(3,0.4*s))}" ${st("fill",pal.steel)}/>`;
+  const hs = r.legs===1 ? 1.3 : Math.min(3.4, Math.max(0.5,(LW*0.42)*Math.tan(Math.max(r.sAng,10)*Math.PI/180)));
+  const hb = 0.9, topMax = PH + rise - 1.2;
+  let lb = Math.max(0.8, (PH+rise)*0.26);
+  if(lb + LH + hs + hb > topMax) lb = Math.max(0.3, topMax - (LH+hs+hb));
+  const hookM = lb + LH + hs, hx = X(r.R), hy = Y(hookM);
+  g += `<line x1="${n(hx)}" y1="${n(tip[1])}" x2="${n(hx)}" y2="${n(Y(hookM+hb))}" style="stroke:${pal.ink}" stroke-width="1.3"/>`;
+  g += `<rect x="${n(hx-Math.max(4,0.36*s))}" y="${n(Y(hookM+hb))}" width="${n(Math.max(8,0.72*s))}" height="${n(Math.max(7,(hb-0.25)*s))}" rx="2" ${st("fill",pal.steel)}/>`;
+  g += `<path d="M${n(hx)} ${n(Y(hookM+0.25))} V${n(hy)}" style="stroke:${pal.ink};stroke-width:1.6;fill:none"/>`;
+  if(r.legs===1) g += `<line x1="${n(hx)}" y1="${n(hy)}" x2="${n(hx)}" y2="${n(Y(lb+LH))}" style="stroke:${pal.ink}" stroke-width="1.6"/>`;
+  else {
+    [-1,1].forEach(sg=>{ g += `<line x1="${n(hx)}" y1="${n(hy)}" x2="${n(X(r.R+sg*LW*0.42))}" y2="${n(Y(lb+LH))}" style="stroke:${pal.ink}" stroke-width="1.6"/>`; });
+    if(r.sAng>0){ const ex=X(r.R+LW*0.42), ey=Y(lb+LH), ar=Math.min(16,Math.max(9,hs*s*0.5)), ta=r.sAng*Math.PI/180;
+      g += `<path d="M${n(ex-ar)} ${n(ey)} A${n(ar)} ${n(ar)} 0 0 1 ${n(ex-ar*Math.cos(ta))} ${n(ey-ar*Math.sin(ta))}" style="fill:none;stroke:${pal.accent}" stroke-width="1.2"/>`; }
+  }
+  g += `<rect x="${n(X(r.R-LW/2))}" y="${n(Y(lb+LH))}" width="${n(LW*s)}" height="${n(LH*s)}" rx="${n(Math.max(2,0.1*s))}" ${st("fill",pal.accent)}/>`;
+  const llx = X(r.R+LW/2)+7, lly = Y(lb+LH/2)+4, lText = `${kg(r.gross)} kg`;
+  if(llx+76 < W) g += `<text x="${n(llx)}" y="${n(lly)}" style="fill:${pal.ink};font-family:${pal.font};font-size:12px;font-weight:600">${lText}</text>`;
+  else g += `<text x="${n(X(r.R-LW/2)-7)}" y="${n(lly)}" text-anchor="end" style="fill:${pal.ink};font-family:${pal.font};font-size:12px;font-weight:600">${lText}</text>`;
+  const ar = Math.max(22, Math.min(34, r.L*s*0.16));
+  g += `<line x1="${n(foot[0])}" y1="${n(foot[1])}" x2="${n(foot[0]+ar+8)}" y2="${n(foot[1])}" style="stroke:${pal.accent}" stroke-width="1" stroke-dasharray="3 3"/>`;
+  g += `<path d="M${n(foot[0]+ar)} ${n(foot[1])} A${n(ar)} ${n(ar)} 0 0 0 ${n(foot[0]+ar*ux)} ${n(foot[1]-ar*uy)}" style="fill:none;stroke:${pal.accent}" stroke-width="1.5"/>`;
+  const la = th/2;
+  g += `<text x="${n(foot[0]+(ar+14)*Math.cos(la))}" y="${n(foot[1]-(ar+14)*Math.sin(la)+4)}" style="fill:${pal.accent};font-family:${pal.font};font-size:12px;font-weight:600">${r.ang.toFixed(0)}°</text>`;
+  const mm = P(r.L*0.58, 0), bx = mm[0]-uy*15, by = mm[1]-ux*15;
+  g += `<text x="${n(bx)}" y="${n(by)}" text-anchor="middle" transform="rotate(${n(-r.ang)} ${n(bx)} ${n(by)})" style="fill:${pal.ink};font-family:${pal.font};font-size:12px;font-weight:600">L ${f1(r.L)} m</text>`;
+  const tx = tip[0]+10;
+  if(tx+80 < W) g += `<text x="${n(tx)}" y="${n(tip[1]+4)}" style="fill:${pal.muted};font-family:${pal.font};font-size:11px">H≈${f1(r.tipH)} m</text>`;
+  else g += `<text x="${n(tip[0]-10)}" y="${n(tip[1]-8)}" text-anchor="end" style="fill:${pal.muted};font-family:${pal.font};font-size:11px">H≈${f1(r.tipH)} m</text>`;
+  const dy = gy+24, sx=X(0);
+  g += `<line x1="${n(sx)}" y1="${n(Y(PH+0.6))}" x2="${n(sx)}" y2="${dy+6}" style="stroke:${pal.muted}" stroke-width="1" stroke-dasharray="4 3"/><line x1="${n(hx)}" y1="${n(Y(lb))}" x2="${n(hx)}" y2="${dy+6}" style="stroke:${pal.muted}" stroke-width="1" stroke-dasharray="4 3"/>`;
+  g += `<line x1="${n(sx)}" y1="${dy}" x2="${n(hx)}" y2="${dy}" style="stroke:${pal.ink}" stroke-width="1.2"/>`;
+  [[sx,1],[hx,-1]].forEach(([x,dir])=>{ g += `<path d="M${n(x)} ${dy} l${n(dir*6)} -3.5 v7 Z" ${st("fill",pal.ink)}/>`; });
+  g += `<text x="${n((sx+hx)/2)}" y="${dy+18}" text-anchor="middle" style="fill:${pal.ink};font-family:${pal.font};font-size:12px;font-weight:600">R ${f1(r.R)} m</text>`;
+  return g + `</svg>`;
+}
+
+function ohcSVG(r, pal, opts){
+  opts = opts||{};
+  const W=440, BOT=48, TOP=16, HMIN=260, HMAX=opts.hmax||340;
+  const mkHead = H => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${opts.px?W*2:"100%"}" ${opts.px?`height="${H*2}"`:""} role="img" aria-label="ภาพด้านหน้าเครน ความสูงตะขอสูงสุด ${f1(r.hookHmax)} เมตร">`;
+  const n = v => v.toFixed(1), st = (k,v) => `style="${k}:${v}"`;
+  if(!(r.hookHmax>0)){
+    const H=HMIN, gy=H-BOT;
+    return mkHead(H) + `<rect x="0" y="${gy}" width="${W}" height="${H-gy}" style="fill:${pal.ground}"/><line x1="0" y1="${gy}" x2="${W}" y2="${gy}" style="stroke:${pal.muted}" stroke-width="1.2"/><text x="${W/2}" y="${gy/2}" text-anchor="middle" style="fill:${pal.muted};font-family:${pal.body};font-size:14px">กรอกความสูงตะขอสูงสุดเพื่อดูภาพ</text></svg>`;
+  }
+  const span = r.span>0 ? r.span : 12, hMax = r.hookHmax;
+  const slingH = r.slingH!=null ? r.slingH : 1.0, loadHt = r.loadHt>0 ? r.loadHt : 1.0, spread = r.spread>0 ? r.spread : 1.2;
+  const LWm = Math.max(spread*1.2, 1.0), hasObst = r.obst>0, req = r.reqHook;
+  const hookPos = req!=null ? Math.min(req, hMax) : Math.min(hMax, Math.max(hMax*0.65, loadHt+slingH+0.6));
+  const loadBot = hookPos - slingH - loadHt, topM = hMax + 2.6;
+  let s = Math.min((W-80)/span, 34);
+  let H = Math.round(topM*s + TOP + BOT);
+  if(H > HMAX){ s = (HMAX-TOP-BOT)/topM; H = HMAX; }
+  if(H < HMIN) H = HMIN;
+  const gy = H - BOT, x0 = (W - span*s)/2;
+  const X = m => x0 + m*s, Y = m => gy - m*s;
+  const colW = Math.max(8, 0.45*s), girB = hMax + 1.2, girT = hMax + 1.85, tx = span*0.56;
+  let g = mkHead(H);
+  g += `<rect x="0" y="${gy}" width="${W}" height="${H-gy}" ${st("fill",pal.ground)}/><line x1="0" y1="${gy}" x2="${W}" y2="${gy}" style="stroke:${pal.muted}" stroke-width="1.2"/>`;
+  [X(0)-colW, X(span)].forEach(cx=>{ g += `<rect x="${n(cx)}" y="${n(Y(girB-0.2))}" width="${n(colW)}" height="${n(gy-Y(girB-0.2))}" style="fill:${pal.steel};opacity:.38"/>`; });
+  [X(0)-colW-2, X(span)-2].forEach(cx=>{ g += `<rect x="${n(cx)}" y="${n(Y(girB))}" width="${n(colW+4)}" height="${n(0.22*s+3)}" ${st("fill",pal.steel)}/>`; });
+  g += `<rect x="${n(X(0)-colW*0.6)}" y="${n(Y(girT))}" width="${n(span*s+colW*1.2)}" height="${n((girT-girB)*s)}" rx="2" style="fill:${pal.crane};stroke:${pal.craneDk};stroke-width:1"/>`;
+  if(r.ohType==="dg") g += `<line x1="${n(X(0))}" y1="${n(Y((girB+girT)/2))}" x2="${n(X(span))}" y2="${n(Y((girB+girT)/2))}" style="stroke:${pal.craneDk}" stroke-width="1" stroke-dasharray="6 4"/>`;
+  [X(0)-colW*0.9, X(span)-colW*0.1].forEach(cx=>{ g += `<rect x="${n(cx)}" y="${n(Y(girT+0.25))}" width="${n(colW)}" height="${n((girT-girB+0.5)*s)}" rx="2" ${st("fill",pal.craneDk)}/>`; });
+  const tw = Math.max(1.8, Math.min(2.6, span*0.12));
+  g += `<rect x="${n(X(tx-tw/2))}" y="${n(Y(girT+0.6))}" width="${n(tw*s)}" height="${n(0.6*s)}" rx="2" ${st("fill",pal.steel)}/><rect x="${n(X(tx-tw*0.32))}" y="${n(Y(girB))}" width="${n(tw*0.64*s)}" height="${n(Math.max(5,0.42*s))}" rx="2" ${st("fill",pal.steel)}/>`;
+  g += `<line x1="${n(X(0)+4)}" y1="${n(Y(hMax))}" x2="${n(X(span)-4)}" y2="${n(Y(hMax))}" style="stroke:${pal.accent}" stroke-width="1" stroke-dasharray="5 4"/>`;
+  g += `<text x="${n(X(0)+8)}" y="${n(Y(hMax)-5)}" style="fill:${pal.accent};font-family:${pal.font};font-size:11px;font-weight:600">Hook max ${f1(hMax)} m</text>`;
+  const hx = X(tx), hbH = Math.max(7, 0.55*s);
+  g += `<line x1="${n(hx)}" y1="${n(Y(girB)+Math.max(5,0.42*s))}" x2="${n(hx)}" y2="${n(Y(hookPos)-hbH-4)}" style="stroke:${pal.ink}" stroke-width="1.3"/>`;
+  g += `<rect x="${n(hx-Math.max(5,0.32*s))}" y="${n(Y(hookPos)-hbH-4)}" width="${n(Math.max(10,0.64*s))}" height="${n(hbH)}" rx="2" ${st("fill",pal.steel)}/><path d="M${n(hx)} ${n(Y(hookPos)-4)} V${n(Y(hookPos))}" style="stroke:${pal.ink};stroke-width:1.6;fill:none"/>`;
+  const slTop = Y(hookPos), slBot = Y(loadBot+loadHt);
+  if(r.legs===1) g += `<line x1="${n(hx)}" y1="${n(slTop)}" x2="${n(hx)}" y2="${n(slBot)}" style="stroke:${pal.ink}" stroke-width="1.6"/>`;
+  else [-1,1].forEach(sg=>{ g += `<line x1="${n(hx)}" y1="${n(slTop)}" x2="${n(X(tx+sg*spread/2))}" y2="${n(slBot)}" style="stroke:${pal.ink}" stroke-width="1.6"/>`; });
+  const obW = LWm*1.6;
+  if(hasObst){
+    g += `<rect x="${n(X(tx-obW/2))}" y="${n(Y(r.obst))}" width="${n(obW*s)}" height="${n(r.obst*s)}" rx="2" style="fill:${pal.line};stroke:${pal.muted};stroke-width:1"/>`;
+    g += `<text x="${n(X(tx+obW/2)+6)}" y="${n(Y(r.obst/2)+4)}" style="fill:${pal.muted};font-family:${pal.font};font-size:11px">Obstacle ${f1(r.obst)} m</text>`;
+  }
+  const loss = r.headMargin!=null && r.headMargin<0;
+  g += `<rect x="${n(X(tx-LWm/2))}" y="${n(Y(loadBot+loadHt))}" width="${n(LWm*s)}" height="${n(loadHt*s)}" rx="${n(Math.max(2,0.08*s))}" style="fill:${pal.accent}"/>`;
+  g += `<text x="${n(X(tx+LWm/2)+8)}" y="${n(Y(loadBot+loadHt/2)+4)}" style="fill:${pal.ink};font-family:${pal.font};font-size:12px;font-weight:600">${kg(r.gross)} kg</text>`;
+  if(hasObst && req!=null){
+    const cx = X(tx-obW/2)-10, ya = Y(r.obst), yb = Y(loadBot), col = loss ? pal.bad : pal.ok, clr = loadBot - r.obst;
+    g += `<line x1="${n(cx)}" y1="${n(ya)}" x2="${n(cx)}" y2="${n(yb)}" style="stroke:${col}" stroke-width="1.4"/><line x1="${n(cx-4)}" y1="${n(ya)}" x2="${n(cx+4)}" y2="${n(ya)}" style="stroke:${col}" stroke-width="1.4"/><line x1="${n(cx-4)}" y1="${n(yb)}" x2="${n(cx+4)}" y2="${n(yb)}" style="stroke:${col}" stroke-width="1.4"/>`;
+    g += `<text x="${n(cx-6)}" y="${n((ya+yb)/2+4)}" text-anchor="end" style="fill:${col};font-family:${pal.font};font-size:11px;font-weight:600">${clr<0?"−":""}${f2(Math.abs(clr))} m</text>`;
+  }
+  const dy = gy+22;
+  g += `<line x1="${n(X(0))}" y1="${dy}" x2="${n(X(span))}" y2="${dy}" style="stroke:${pal.ink}" stroke-width="1.2"/>`;
+  [[X(0),1],[X(span),-1]].forEach(([x,dir])=>{ g += `<path d="M${n(x)} ${dy} l${n(dir*6)} -3.5 v7 Z" ${st("fill",pal.ink)}/>`; });
+  g += `<text x="${n(X(span/2))}" y="${dy+17}" text-anchor="middle" style="fill:${pal.ink};font-family:${pal.font};font-size:12px;font-weight:600">Span ${r.span>0?f1(r.span):"—"} m</text>`;
+  return g + `</svg>`;
+}
+
+/* ================= Build static UI ================= */
+const TICK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg>`;
+function buildUI(){
+  $("#crit-list").innerHTML = CRIT.map(c=>`<label class="tick crit" for="cr-${c.id}" ${c.id==="travelHaz"?'id="travelHaz-row"':""}><input type="checkbox" id="cr-${c.id}" data-k="crit.${c.id}"><span class="box">${TICK_SVG}</span><span class="t">${esc(c.t)}<small>${esc(c.s)}</small></span></label>`).join("");
+  const all = CHECKS.concat(CHECKS_OH);
+  $("#check-list").innerHTML = all.map((c,i)=>`<div class="cl-row" data-cl="${c.id}" ${c.id.startsWith("o")?'data-only="overhead"':""}><span class="no">${c.id.startsWith("o")?"+"+c.id.slice(1):i+1}</span><span class="t">${esc(c.t)}${c.s?`<small>${esc(c.s)}</small>`:""}</span><span class="tri" role="group" aria-label="คำตอบข้อ ${i+1}"><button type="button" data-v="y">ใช่</button><button type="button" data-v="n">ไม่ใช่</button><button type="button" data-v="na">N/A</button></span></div>`).join("");
+  $("#sigs").innerHTML = SIGS.map(g=>`
+    <div class="sig" data-sig="${g.id}">
+      <div class="sig-role"><div><b>${esc(g.role)}</b><small>${esc(g.sub)}</small></div><span class="chip" data-sigchip="${g.id}">รอลงนาม</span></div>
+      <div class="field"><label for="sg-${g.id}">ชื่อ-สกุล</label><input type="text" id="sg-${g.id}" data-k="sigs.${g.id}.name"></div>
+      <div class="sig-pad"><span class="base"></span><span class="x">×</span><span class="hint" data-sighint="${g.id}">เซ็นชื่อที่นี่</span><canvas aria-label="ช่องลงลายมือชื่อ ${esc(g.role)}"></canvas></div>
+      <div class="sig-foot"><span data-sigtime="${g.id}"></span><button type="button" class="linkbtn" data-sigclear="${g.id}">ล้างลายเซ็น</button></div>
+    </div>`).join("");
+  $("#f-pin").innerHTML = `<option value="">— เลือก —</option>` + PINS.map(p=>`<option value="${p}">${p} นิ้ว</option>`).join("");
+  let t = `<thead><tr><th scope="col">รัศมี \\ บูม</th>${LC.booms.map((b,i)=>`<th scope="col" data-col="${i}">${b.toFixed(1)} ม.</th>`).join("")}</tr></thead><tbody>`;
+  LC.radii.forEach((rad,ri)=>{ t += `<tr data-row="${ri}"><th scope="row">${rad} ม.</th>${LC.cap[ri].map((v,bi)=>`<td data-col="${bi}" class="${v==null?"na":""}">${v==null?"–":kg(v*1000)}</td>`).join("")}</tr>`; });
+  $("#lc").innerHTML = t + `</tbody>`;
+}
+
+function fillInputs(){
+  $$("[data-k]").forEach(el=>{
+    const k = el.dataset.k, v = getPath(S,k);
+    if(el.classList.contains("seg")) $$("button",el).forEach(b=>b.setAttribute("aria-pressed", String(String(v)===b.dataset.v)));
+    else if(el.type==="checkbox") el.checked = !!v;
+    else el.value = v==null ? "" : v;
+  });
+}
+
+/* ================= Render ================= */
+let R = null;
+const TONE_TXT = {ok:"ผ่าน", warn:"ตรวจสอบ", bad:"ไม่ผ่าน", idle:"รอข้อมูล"};
+function setMeter(id, pct, tone, label){ const m = $("#"+id); m.dataset.tone = tone; m.querySelector("i").style.width = (pct==null?0:Math.min(pct,100))+"%"; $("#"+id+"-l").textContent = label; }
+function setStatus(sec, tone, text){ $$(`[data-status="${sec}"]`).forEach(e=>{ e.dataset.tone=tone; e.textContent=text||TONE_TXT[tone]; }); $$(`[data-sec="${sec}"]`).forEach(e=>{ e.dataset.tone=tone; }); }
+const ck = id => R.checks.find(c=>c.id===id);
+
+function render(){
+  const r = compute(S); R = r;
+  const s = S, OH = r.OH;
+  $$("[data-only]").forEach(e=>{ e.hidden = e.dataset.only !== r.type; });
+  $("#st3").textContent = OH ? "เครน" : "ปั้นจั่น";
+  $("#st5").textContent = OH ? "ระยะยก" : "พื้นและลม";
+  $("#h-crane").textContent = OH ? "ข้อมูลเครนเหนือศีรษะและรอก" : "ข้อมูลปั้นจั่นเคลื่อนที่";
+  $("#h-ground").textContent = OH ? "ระยะยกและเส้นทางเคลื่อนย้าย" : "พื้นรับขาค้ำและสภาพลม";
+  $("#l-cname").textContent = OH ? "เครน (ชื่อ / ตำแหน่งติดตั้ง)" : "ประเภทของปั้นจั่น (Type of crane)";
+  $("#l-insp").textContent = OH ? "ผลตรวจเครน (ปจ.1) ใช้ได้ถึง" : "ผลตรวจปั้นจั่น (ปจ.2) ใช้ได้ถึง";
+  ["#l-cname","#l-insp"].forEach(id=>{ const l=$(id), b=l && l.parentElement.querySelector(".info"); if(b) b.setAttribute("aria-label","ที่มาของข้อมูล: "+l.textContent.trim()); });
+  $("#d-title").textContent = OH ? "ภาพด้านหน้าการยก" : "ภาพด้านข้างการยก";
+  $("#d-cap").textContent = OH ? "ความสูงตะขอ สิ่งกีดขวาง ชิ้นงาน และสลิงวาดตามค่าที่กรอก อาคารและเครนเป็นภาพประกอบ" : "บูมและรัศมีสูงสุดวาดตามค่าที่กรอก ตัวรถเป็นภาพประกอบ";
+  $("#k-l2").textContent = OH ? "พิกัดยกเครน" : "พิกัดยก";
+  $("#k-l3").textContent = OH ? "ความสูงตะขอสูงสุด" : "รัศมีสูงสุด";
+  $("#k-l4").textContent = OH ? "ระยะตะขอเหลือ" : "มุมบูมที่รัศมีสูงสุด";
+
+  // app bar & verdict
+  $("#hdr-doc").textContent = (s.docNo||"ไม่มีเลขที่") + (s.date ? " · "+thDate(s.date) : "");
+  const pill = $("#hdr-pill"); pill.dataset.tone = r.V.tone; $("#hdr-pill-text").textContent = r.pillText;
+  $("#verdict").dataset.tone = r.V.tone;
+  const tag = $("#v-tag"); tag.textContent = r.V.tag; tag.dataset.tone = r.V.tone; tag.hidden = r.verdict==="pending";
+  const rd = $("#v-ready"); rd.textContent = r.ready ? "พร้อมยก" : "ยังไม่พร้อมยก"; rd.dataset.tone = r.ready ? "ok" : "idle";
+  $("#v-title").textContent = r.V.title; $("#v-sub").textContent = r.V.sub;
+  $("#v-reasons").innerHTML = r.reasons.map(x=>`<li data-tone="${x.tone}"><span class="dot"></span><span>${esc(x.text)}</span></li>`).join("");
+  $("#gauge").innerHTML = gaugeSVG(r);
+  $("#k-gross").innerHTML = r.gross>0 ? `${kg(r.gross)}<small>kg</small>` : "—";
+  $("#k-cap").innerHTML = r.cap>0 ? `${kg(r.cap)}<small>kg</small>` : "—";
+  if(OH){
+    $("#k-radius").innerHTML = r.hookHmax>0 ? `${f1(r.hookHmax)}<small>m</small>` : "—";
+    $("#k-angle").innerHTML = r.headMargin!=null ? `${r.headMargin<0?"−":""}${f2(Math.abs(r.headMargin))}<small>m</small>` : "—";
+  } else {
+    $("#k-radius").innerHTML = r.R>0 ? `${f1(r.R)}<small>m</small>` : "—";
+    $("#k-angle").innerHTML = r.ang!=null ? `${r.ang.toFixed(1)}<small>°</small>` : "—";
+  }
+  $("#diagram").innerHTML = OH ? ohcSVG(r, PAL_PAGE) : craneSVG(r, PAL_PAGE);
+  $("#d-cfg").textContent = (OH ? (OH_TYPES[r.ohType]||"")+" · " : "") + (r.legs===1 ? "สลิง 1 เส้น" : `สลิง ${r.legs} เส้น · ${r.sAng>0?r.sAng.toFixed(0):"—"}°`);
+  $("#checks").innerHTML = r.checks.map(c=>`<li data-tone="${c.tone}"><span class="dot"></span><span class="l">${esc(c.label)}</span><span class="v">${esc(c.val)}</span><span class="m">${esc(c.meta)}</span></li>`).join("");
+
+  // 01
+  const jobKeys = ["task","area","date","supervisor","operator","signalman","rigger"];
+  const jobFilled = jobKeys.filter(k=>has(s[k])).length;
+  const jobTone = jobFilled===jobKeys.length ? "ok" : jobFilled===0 ? "idle" : "warn";
+  const trC = ck("train");
+  setStatus("job", worst(jobTone, trC.tone), trC.tone==="bad" ? "อบรมเกิน 2 ปี" : (jobFilled===jobKeys.length ? (trC.tone==="ok"?"ครบ":TONE_TXT[trC.tone]) : `กรอกแล้ว ${jobFilled}/${jobKeys.length}`));
+
+  // 02
+  const parts = [
+    {k:"ชิ้นงาน", v:r.loadW, c:"var(--ink)"},
+    {k:"Headache ball", v:r.ballW, c:"var(--muted)"},
+    {k:"Block", v:r.hookW, c:"var(--accent)"},
+    {k:"Lifting bar", v:r.beamW, c:"var(--steel)"},
+    {k:"สลิงและ Shackle", v:r.rigW, c:"var(--crane)"},
+    {k:"ค่าเผื่อ", v:r.allowW, c:"repeating-linear-gradient(135deg,var(--ink) 0 3px,var(--muted) 3px 6px)"},
+    {k:"อื่นๆ", v:r.otherW, c:"var(--line)"}
+  ].filter(p=>p.v>0);
+  $("#stack").innerHTML = parts.map(p=>`<i style="flex-grow:${p.v};background:${p.c}"></i>`).join("");
+  $("#legend").innerHTML = parts.map(p=>`<span style="--c:${p.c}">${esc(p.k)}<b>${kg(p.v)}</b></span>`).join("") || `<span style="--c:var(--line)">ยังไม่มีข้อมูลน้ำหนัก</span>`;
+  $("#o-gross").innerHTML = r.gross>0 ? `${kg(r.gross)}<small>kg</small>` : "—";
+  $("#o-gross-n").textContent = OH ? "ไม่รวม Block และ Headache ball เพราะพิกัดเครนคือน้ำหนักใต้ตะขอ" : "รวมทุกรายการตามเอกสารแนบ 1 ส่วน B";
+  $("#used-note").hidden = !(s.cond==="used" && !(r.allowW>0));
+  setStatus("load", r.loadW>0 ? "ok" : "idle", r.loadW>0 ? `${kg(r.gross)} kg` : "รอข้อมูล");
+
+  // 03
+  if(OH){
+    $("#o-capOH").innerHTML = r.cap>0 ? `${kg(r.cap)}<small>kg</small>` : "—";
+    $("#o-capOH-n").textContent = (r.swlC>0 && r.swlH>0 && r.swlC!==r.swlH) ? `ใช้ค่าที่ต่ำกว่า (เครน ${kg(r.swlC)} / รอก ${kg(r.swlH)} kg)` : "ใช้ค่าที่ต่ำกว่าระหว่างเครนกับรอก";
+    $("#exempt-text").innerHTML = r.exempt
+      ? "<b>S-320 ข้อ F:</b> ปั้นจั่นรางในอาคาร รอกโมโนเรล และรอกแขนยึด ไม่ต้องทำใบอนุญาตงานยกที่มีความเสี่ยง แต่ต้องมีป้ายพิกัดชัดเจน และผู้ใช้ต้องดูแลไม่ให้ยกเกินพิกัด"
+      : "<b>Gantry crane</b> อยู่ในขอบเขตของ S-320 ใช้เกณฑ์ Critical lift และเงื่อนไข 95% เหมือนปั้นจั่นเคลื่อนที่";
+  } else {
+    $("#manual-grp").hidden = !r.manual;
+    $("#o-angP").innerHTML = r.angP!=null ? `${r.angP.toFixed(1)}<small>°</small>` : "—";
+    $("#o-angS").innerHTML = r.angS!=null ? `${r.angS.toFixed(1)}<small>°</small>` : "—";
+    $("#o-tip").textContent = r.tipH!=null ? `ปลายบูมสูงประมาณ ${f1(r.tipH)} ม.` : "";
+    $("#o-cap").innerHTML = r.cap>0 ? `${kg(r.cap)}<small>kg</small>` : "—";
+    let capNote = "";
+    if(r.manual){ const d=r.dirs, mins=Object.entries(d).filter(([,v])=>v>0); capNote = mins.length ? `ค่าต่ำสุดจาก ${mins.map(([k])=>({rear:"หลัง",front:"หน้า",side:"ข้าง"})[k]).join(" / ")}` : "กรอกพิกัดอย่างน้อย 1 ทิศ"; }
+    else if(r.lk.cap!=null) capNote = `ช่องบูม ${LC.booms[r.lk.bi].toFixed(1)} ม. × รัศมี ${LC.radii[r.lk.ri]} ม.`;
+    else capNote = r.lk.err || "";
+    $("#o-cap-n").textContent = capNote;
+    $("#o-cap95").innerHTML = r.cap95 ? `${kg(r.cap95)}<small>kg</small>` : "—";
+    $("#chart-block").hidden = r.manual;
+    $$("#lc .col-on,#lc .row-on,#lc .hit").forEach(e=>e.classList.remove("col-on","row-on","hit"));
+    if(!r.manual && r.lk.bi!=null){
+      $$(`#lc [data-col="${r.lk.bi}"]`).forEach(e=>e.classList.add("col-on"));
+      if(r.lk.ri!=null){
+        const row = $(`#lc tr[data-row="${r.lk.ri}"]`); row.classList.add("row-on");
+        row.querySelector(`td[data-col="${r.lk.bi}"]`).classList.add("hit");
+        const wrap = $("#chart-wrap"), want = row.offsetTop - wrap.clientHeight/2 + row.offsetHeight;
+        if(Math.abs(wrap.scrollTop - want) > 30) wrap.scrollTop = Math.max(0,want);
+      }
+    }
+  }
+  setStatus("crane", worst(ck("cap").tone, ck("insp").tone));
+
+  // 04
+  $("#f-sang").disabled = $("#f-sang-r").disabled = r.legs===1;
+  $("#o-legs").innerHTML = `${r.legsEff}<small>เส้น</small>`;
+  $("#o-legs-n").textContent = r.legs>2 ? `สลิง ${r.legs} เส้น คิดรับจริง 2 เส้นเพื่อความปลอดภัย` : (r.legs===1 ? "ยกแนวดิ่ง" : "รับน้ำหนักทั้ง 2 เส้น");
+  $("#o-factor").textContent = r.factor ? r.factor.toFixed(3) : "—";
+  $("#o-tension").innerHTML = r.tension!=null ? `${f2(r.tension)}<small>ตัน/เส้น</small>` : "—";
+  $("#o-tension-n").textContent = r.slingLoad>0 ? `น้ำหนักที่สลิงรับ ${kg(r.slingLoad)} kg (${kg(r.tension*1000)} kg ต่อเส้น)` : "";
+  setMeter("m-sling", r.slingPct, ck("sling").tone, r.slingPct!=null ? `${r.slingPct.toFixed(0)}% ของ WLL` : "—");
+  setStatus("sling", worst(ck("sling").tone, ck("angle").tone, ck("shackle").tone));
+
+  // 05
+  const grC = ck("ground"), wiC = ck("wind"), hdC = ck("head");
+  if(!OH){
+    $("#fld-outManual").hidden = !r.outManual;
+    $("#o-react").innerHTML = r.react>0 ? `${kg(r.react)}<small>kg</small>` : "—";
+    $("#o-react-n").textContent = r.outManual ? "ค่าจากผู้ผลิต" : "75% × (น้ำหนักปั้นจั่น + น้ำหนักรวม)";
+    $("#o-press").innerHTML = r.press!=null ? `${f1(r.press)}<small>ตัน/ม²</small>` : "—";
+    $("#o-press-n").textContent = r.press!=null ? `≈ ${(r.press*9.81).toFixed(0)} kPa บนแผ่นรอง ${f2(r.padA)} ม²` : "แรงกด ÷ พื้นที่แผ่นรอง";
+    if(grC) setMeter("m-ground", r.groundPct, grC.tone, r.groundPct!=null ? `${r.groundPct.toFixed(0)}%` : "—");
+  }
+  if(hdC){
+    $("#o-slingH").innerHTML = r.slingH!=null ? `${f2(r.slingH)}<small>ม.</small>` : "—";
+    $("#o-slingH-n").textContent = r.legs===1 ? "สลิง 1 เส้น คิดความสูงสลิง 1.00 ม." : "จากระยะห่างจุดยกและมุมสลิง";
+    $("#o-reqHook").innerHTML = r.reqHook!=null ? `${f2(r.reqHook)}<small>ม.</small>` : "—";
+    $("#o-margin").innerHTML = r.headMargin!=null ? `${r.headMargin<0?"−":""}${f2(Math.abs(r.headMargin))}<small>ม.</small>` : "—";
+    $("#o-margin-n").textContent = r.headMargin==null ? "ความสูงตะขอสูงสุด − ความสูงที่ต้องใช้" : (r.headMargin<0 ? "ตะขอยกได้ไม่สูงพอ ต้องเปลี่ยนเส้นทางหรือวิธียก" : "ยกพ้นสิ่งกีดขวางได้");
+    setMeter("m-head", r.headPct, hdC.tone, r.headPct!=null ? `${f2(r.reqHook)} / ${f1(r.hookHmax)} ม.` : "—");
+  }
+  $("#wind-grp").hidden = !r.windApplies;
+  if(wiC) setMeter("m-wind", r.windPct, wiC.tone, r.windPct!=null ? `${f1(r.wind)} / ${f1(r.windLim)} ม./วินาที` : "—");
+  $("#o-wind-kmh").textContent = has(s.wind) ? `(${(r.wind*3.6).toFixed(0)} กม./ชม.)` : "";
+  setStatus("ground", worst(grC&&grC.tone, wiC&&wiC.tone, hdC&&hdC.tone));
+
+  // 06
+  $("#crit-exempt").hidden = !r.exempt;
+  $("#crit-inputs").hidden = r.exempt;
+  $("#travelHaz-row").hidden = !s.crit.travel;
+  $("#crit-eval").innerHTML = r.critEval.map(c=>`<li data-met="${c.met}"><span>${esc(c.t)}</span><span class="chip" data-tone="${c.met?"warn":"ok"}">${c.met?"เข้าเกณฑ์":"ไม่เข้าเกณฑ์"}</span><small>${esc(c.note)}</small></li>`).join("");
+  $("#power-grp").hidden = !r.power;
+  $("#o-preq").innerHTML = r.pReq!=null ? `${f2(r.pReq)}<small>ม.</small>` : "—";
+  const pwC = ck("power");
+  if(r.exempt) setStatus("crit", pwC && pwC.tone==="bad" ? "bad" : "ok", pwC && pwC.tone==="bad" ? "ใกล้สายไฟ" : "ยกเว้นตามข้อ F");
+  else setStatus("crit", pwC && pwC.tone==="bad" ? "bad" : (r.critReasons.length ? "warn" : "ok"), pwC && pwC.tone==="bad" ? "ใกล้สายไฟ" : (r.critReasons.length ? `Critical (${r.critReasons.length})` : "ไม่เข้าเกณฑ์"));
+
+  // 07
+  $$(".cl-row").forEach(row=>{ const id=row.dataset.cl, v=(s.cl&&s.cl[id])||""; row.dataset.state=v; $$("button",row).forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===v))); });
+  setStatus("check", r.clNo ? "bad" : (r.clDone ? "ok" : "warn"), `${r.clAnswered}/${r.clTotal}`);
+
+  // 08
+  setStatus("sign", (r.sigDone===r.sigReq.length && r.matchOk) ? "ok" : "warn", `${r.sigDone}/${r.sigReq.length}`);
+  $$(".tick").forEach(t=>{ const i=t.querySelector("input"); t.classList.toggle("on", i.checked); });
+  SIGS.forEach(g=>{
+    const req = r.sigReq.includes(g.id), d = s.sigs[g.id] || {}, signed = !!(d.img && has(d.name));
+    const card = $(`.sig[data-sig="${g.id}"]`);
+    card.classList.toggle("optional", !req);
+    card.classList.toggle("need", !!(req && !signed && g.critOnly));
+    const chip = $(`[data-sigchip="${g.id}"]`);
+    chip.textContent = signed ? "ลงนามแล้ว" : (req ? "รอลงนาม" : "ไม่บังคับ"); chip.dataset.tone = signed ? "ok" : (req ? "warn" : "idle");
+    $(`[data-sighint="${g.id}"]`).hidden = !!d.img;
+    $(`[data-sigtime="${g.id}"]`).textContent = d.at ? "ลงนาม "+thDateTime(d.at) : "";
+  });
+  $("#banner").hidden = !s.isExample;
+}
+
+/* ================= Signature pads ================= */
+const pads = {};
+function initPads(){
+  $$(".sig").forEach(card=>{
+    const id = card.dataset.sig, cv = card.querySelector("canvas"), ctx = cv.getContext("2d");
+    const pad = {cv, ctx, w:0, h:0, drawing:false, last:null};
+    pads[id] = pad;
+    const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX-b.left, e.clientY-b.top]; };
+    cv.addEventListener("pointerdown", e=>{ e.preventDefault(); try{cv.setPointerCapture(e.pointerId);}catch(_){} pad.drawing=true; pad.last=pos(e); ctx.beginPath(); ctx.arc(pad.last[0],pad.last[1],1.1,0,Math.PI*2); ctx.fill(); });
+    cv.addEventListener("pointermove", e=>{ if(!pad.drawing) return; e.preventDefault(); const p=pos(e); ctx.beginPath(); ctx.moveTo(pad.last[0],pad.last[1]); ctx.lineTo(p[0],p[1]); ctx.stroke(); pad.last=p; });
+    const end = ()=>{ if(!pad.drawing) return; pad.drawing=false; commit(id); };
+    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end); cv.addEventListener("pointerleave", end);
+  });
+  $$("[data-sigclear]").forEach(b=>b.addEventListener("click", ()=>{
+    const id=b.dataset.sigclear; Object.assign(S.sigs[id], {img:null, at:null, demo:false});
+    const p=pads[id]; p.ctx.clearRect(0,0,p.w,p.h); S.isExample=false; save(); render();
+  }));
+  sizePads();
+}
+function styleCtx(p){ const c=p.ctx; c.lineCap="round"; c.lineJoin="round"; c.lineWidth=2.3; c.strokeStyle="#1B2F7A"; c.fillStyle="#1B2F7A"; }
+function sizePads(){
+  const dpr = Math.min(window.devicePixelRatio||1, 3);
+  Object.entries(pads).forEach(([id,p])=>{
+    const b = p.cv.getBoundingClientRect(); if(!b.width) return;
+    if(Math.round(b.width)===p.w && Math.round(b.height)===p.h) return;
+    p.w=Math.round(b.width); p.h=Math.round(b.height);
+    p.cv.width=Math.round(b.width*dpr); p.cv.height=Math.round(b.height*dpr);
+    p.ctx.setTransform(dpr,0,0,dpr,0,0); styleCtx(p);
+    const d = S.sigs[id];
+    if(d && d.img){ const im=new Image(); im.onload=()=>{ p.ctx.drawImage(im,0,0,p.w,p.h); }; im.src=d.img; }
+    else if(d && d.demo){ drawDemoSig(p); commit(id, true); }
+  });
+}
+function drawDemoSig(p){
+  const c=p.ctx, bx=p.w*0.2, by=p.h*0.62;
+  c.beginPath(); c.moveTo(bx, by);
+  c.bezierCurveTo(bx+10,by-48,bx+30,by-50,bx+26,by-8); c.bezierCurveTo(bx+22,by+14,bx+44,by+4,bx+52,by-22);
+  c.bezierCurveTo(bx+58,by-40,bx+66,by-34,bx+64,by-12); c.bezierCurveTo(bx+62,by+8,bx+82,by-2,bx+96,by-26);
+  c.bezierCurveTo(bx+104,by-38,bx+112,by-20,bx+120,by-14); c.bezierCurveTo(bx+134,by-6,bx+150,by-30,bx+170,by-20); c.stroke();
+  c.beginPath(); c.moveTo(bx+30,by+10); c.bezierCurveTo(bx+80,by+2,bx+140,by+4,bx+186,by-4); c.stroke();
+}
+function commit(id, quiet){
+  const p = pads[id];
+  S.sigs[id].img = p.cv.toDataURL("image/png");
+  if(!S.sigs[id].at || !quiet) S.sigs[id].at = Date.now();
+  S.sigs[id].demo = false;
+  if(!quiet) S.isExample = false;
+  save(); render();
+}
+
+/* ================= Events ================= */
+function onInput(e){
+  const el = e.target.closest("[data-k]"); if(!el || el.classList.contains("seg")) return;
+  const k = el.dataset.k, v = el.type==="checkbox" ? el.checked : el.value;
+  setPath(S, k, v);
+  if(k==="slingAng") $$('[data-k="slingAng"]').forEach(x=>{ if(x!==el) x.value=v; });
+  S.isExample = false; save(); render();
+}
+document.addEventListener("input", onInput);
+document.addEventListener("change", e=>{ if(e.target.matches("select[data-k]")) onInput(e); });
+document.addEventListener("click", e=>{
+  const tb = e.target.closest(".tri button");
+  if(tb){
+    const row = tb.closest(".cl-row"), id = row.dataset.cl;
+    if(!S.cl) S.cl = {};
+    S.cl[id] = S.cl[id]===tb.dataset.v ? "" : tb.dataset.v;
+    S.isExample=false; save(); render(); return;
+  }
+  const b = e.target.closest(".seg button"); if(!b) return;
+  const seg = b.closest(".seg"), k = seg.dataset.k;
+  const v = seg.dataset.num ? Number(b.dataset.v) : b.dataset.v;
+  if(k==="craneType"){
+    if(S.craneType===v) return;
+    if(S.isExample){ resetTo(exampleFor(v), true); toast(v==="overhead" ? "แสดงตัวอย่างเครนเหนือศีรษะ" : "แสดงตัวอย่างปั้นจั่นเคลื่อนที่"); return; }
+    S.craneType = v; save(); fillInputs(); render(); return;
+  }
+  setPath(S, k, v); S.isExample=false;
+  $$("button",seg).forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+  save(); render();
+});
+$("#cl-reset").addEventListener("click", async ()=>{
+  const ok = await openModal({title:"ล้างคำตอบแบบตรวจสอบ", text:"คำตอบทุกข้อในแบบตรวจสอบก่อนงานยกจะถูกล้าง", okText:"ล้างคำตอบ", danger:true});
+  if(ok){ S.cl = {}; S.isExample=false; save(); render(); }
+});
+
+$$(".step").forEach(b=>b.addEventListener("click", ()=>{ const t = document.getElementById(b.dataset.target); if(t) t.scrollIntoView({behavior: reduceMotion?"auto":"smooth", block:"start"}); }));
+if("IntersectionObserver" in window){
+  const io = new IntersectionObserver(ents=>{ ents.forEach(en=>{ if(en.isIntersecting) $$(".step").forEach(s=>s.setAttribute("aria-current", String(s.dataset.target===en.target.id))); }); }, {rootMargin:"-45% 0px -50% 0px"});
+  $$(".card").forEach(c=>io.observe(c));
+}
+function setHdr(){ document.documentElement.style.setProperty("--hdr-h", ($("#appbar").offsetHeight+14)+"px"); }
+
+let modalOk = null;
+function openModal({title, text, okText="ตกลง", danger=false, area=null, cancel=true}){
+  $("#modal-title").textContent = title; $("#modal-text").textContent = text||"";
+  const ta = $("#modal-area"); ta.hidden = area==null; if(area!=null) ta.value = area;
+  const ok = $("#modal-ok"); ok.textContent = okText; ok.className = "btn "+(danger?"danger":"primary");
+  $("#modal-cancel").hidden = !cancel;
+  $("#modal").classList.add("open");
+  setTimeout(()=>{ if(area!=null){ ta.focus(); ta.select(); } else ok.focus(); }, 30);
+  return new Promise(res=>{ modalOk = res; });
+}
+function closeModal(v){ $("#modal").classList.remove("open"); if(modalOk){ modalOk(v); modalOk=null; } }
+$("#modal-ok").addEventListener("click", ()=>closeModal(true));
+$("#modal-cancel").addEventListener("click", ()=>closeModal(false));
+$("#modal").addEventListener("click", e=>{ if(e.target.id==="modal") closeModal(false); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("#modal").classList.contains("open")) closeModal(false); });
+let toastT=null;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"), 2600); }
+
+function resetTo(obj, keepScroll){
+  S = clone(obj); save(); fillInputs();
+  Object.values(pads).forEach(p=>{ p.ctx.clearRect(0,0,p.w,p.h); p.w=0; p.h=0; });
+  render(); sizePads(); render();
+  if(!keepScroll) window.scrollTo({top:0, behavior: reduceMotion?"auto":"smooth"});
+}
+async function askNew(){
+  const ok = await openModal({title:"เริ่มแผนใหม่", text:"ข้อมูลและลายเซ็นในแผนนี้จะถูกล้างทั้งหมด ชนิดปั้นจั่นยังเป็นแบบเดิม", okText:"ล้างและเริ่มใหม่", danger:true});
+  if(ok){ resetTo(blankPlan(S.craneType)); toast("เริ่มแผนใหม่แล้ว"); }
+}
+$("#btn-new").addEventListener("click", askNew);
+$("#btn-new-top").addEventListener("click", askNew);
+$("#btn-example").addEventListener("click", async ()=>{
+  const ok = await openModal({title:"โหลดข้อมูลตัวอย่าง", text:"ข้อมูลที่กรอกไว้จะถูกแทนที่ด้วยตัวอย่างของชนิดปั้นจั่นที่เลือกอยู่", okText:"โหลดตัวอย่าง"});
+  if(ok){ resetTo(exampleFor(S.craneType)); toast("โหลดข้อมูลตัวอย่างแล้ว"); }
+});
+
+/* ================= Summary text ================= */
+function summaryText(){
+  const r=R, s=S, L=[];
+  L.push(`LIFTING PLAN ${s.docNo||""} (S-320)`.trim());
+  if(has(s.task)) L.push(`รายการที่ยก: ${s.task}`);
+  if(has(s.area)) L.push(`พื้นที่: ${s.area}`);
+  L.push(`วันที่ยก: ${thDate(s.date)}${has(s.time)?" เวลา "+s.time+" น.":""}`);
+  L.push(`ผลประเมิน: ${r.V.title}${r.pct!=null?` (ใช้พิกัด ${r.pct.toFixed(1)}%)`:""} · ${r.ready?"พร้อมยก":"ยังไม่พร้อมยก"}`);
+  L.push("");
+  L.push(`น้ำหนักรวม ${kg(r.gross)} kg | พิกัดยก ${kg(r.cap)} kg${!r.exempt && r.cap95 ? ` | 95% = ${kg(r.cap95)} kg` : ""}`);
+  if(r.OH){
+    L.push(`เครน: ${s.craneName||"-"} ${s.craneId?"("+s.craneId+")":""} ${OH_TYPES[r.ohType]||""}${r.exempt?" · ยกเว้นตาม S-320 ข้อ F":""}`.trim());
+    L.push(`ตะขอสูงสุด ${f1(r.hookHmax)} m | ต้องใช้ ${f2(r.reqHook)} m | เหลือ ${r.headMargin!=null?f2(r.headMargin):"-"} m`);
+  } else {
+    L.push(`ปั้นจั่น: ${s.craneName||"-"} ${s.craneId?"("+s.craneId+")":""}`.trim());
+    L.push(`บูม ${f1(r.L)} m | รัศมียก ${f1(r.Rp)} m วาง ${f1(r.Rs)} m | มุมบูม ${r.angP!=null?r.angP.toFixed(0):"-"}° / ${r.angS!=null?r.angS.toFixed(0):"-"}°`);
+  }
+  L.push(`สลิง ${r.legs} เส้น มุม ${r.legs===1?"90":f1(r.sAng)}° | แรงตึง ${f2(r.tension)} t/เส้น${r.slingPct!=null?` (${r.slingPct.toFixed(0)}% WLL)`:""} | Shackle ${f1(r.shCap)} t`);
+  if(!r.OH) L.push(`แรงกดพื้น ${f1(r.press)} t/m²${r.groundPct!=null?` (${r.groundPct.toFixed(0)}% ของที่รับได้)`:""}`);
+  if(r.windApplies) L.push(`ลม ${has(s.wind)?f1(r.wind):"-"} / ${f1(r.windLim)} m/s`);
+  if(r.critReasons.length){ L.push(""); L.push("เข้าเกณฑ์ Critical lift (S-320 I.C):"); r.critReasons.forEach(t=>L.push("- "+t)); }
+  const bad = r.checks.filter(c=>c.tone==="bad");
+  if(bad.length){ L.push(""); L.push("ไม่ผ่าน:"); bad.forEach(c=>L.push(`- ${c.label}: ${c.meta}`)); }
+  L.push("");
+  L.push(`แบบตรวจสอบก่อนยก ${r.clAnswered}/${r.clTotal} | ลงนาม ${r.sigDone}/${r.sigReq.length}${r.isCritical?` | ผลคำนวณ 2 คนตรงกัน: ${s.calcMatch?"ใช่":"ยังไม่ยืนยัน"}`:""}`);
+  L.push(`ทีม: ประสานงาน ${s.supervisor||"-"} / บังคับ ${s.operator||"-"} / สัญญาณ ${s.signalman||"-"} / ยึดเกาะ ${s.rigger||"-"}`);
+  return L.join("\n");
+}
+$("#btn-copy").addEventListener("click", async ()=>{
+  const txt = summaryText();
+  try{ await navigator.clipboard.writeText(txt); toast("คัดลอกสรุปแล้ว วางใน LINE หรืออีเมลได้เลย"); }
+  catch(e){ openModal({title:"สรุปแผนการยก", text:"เลือกข้อความทั้งหมดแล้วคัดลอก", area:txt, okText:"ปิด", cancel:false}); }
+});
+
+/* ================= PDF ================= */
+// PDF: inside Claude use the downloads capability; opened as a normal web page (e.g. GitHub Pages) use a browser download
+let downloads = null, pdfMode = null;
+(async ()=>{
+  const inClaude = !!(window.claude && typeof window.claude.use==="function");
+  if(inClaude){ try{ downloads = await window.claude.use("downloads"); }catch(e){ downloads=null; } if(downloads) pdfMode = "claude"; }
+  else pdfMode = "browser";
+  if(pdfMode) $("#btn-pdf").hidden = false;
+})();
+function browserDownload(blob, name){
+  const url = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = url; a.download = name; a.rel = "noopener"; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 4000);
+}
+
+function sheetHTML(){
+  const r=R, s=S, tone=r.V.tone, OH=r.OH;
+  const kv = (k,v,cls="") => { const t=String(v); return `<div class="${cls}"><span>${esc(k)}</span><b class="${/\d/.test(t) && /^[\d.,\s%°a-zA-Z/²≈()×\-]+$/.test(t)?"m":""}">${esc(v)}</b></div>`; };
+  const bar = (label, pct, t, right) => `<div class="sh-bar"><div class="lb"><span>${esc(label)}</span><b>${esc(right)}</b></div><div class="tr"><i style="width:${pct==null?0:Math.min(pct,100)}%;background:${TONE_HEX[t]}"></i></div></div>`;
+  const diag = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(OH ? ohcSVG(r, PAL_PRINT, {px:true, hmax:320}) : craneSVG(r, PAL_PRINT, {px:true, hmax:320}));
+  const reasons = r.reasons.map(x=>`<li><i style="background:${TONE_HEX[x.tone]}"></i>${esc(x.text)}</li>`).join("");
+  const C = id => r.checks.find(c=>c.id===id) || {tone:"idle"};
+  const foot = p => `<div class="sh-foot"><span>${esc(s.docNo||"")} · อ้างอิง S-320 Critical Lift Permits · สร้างเมื่อ ${esc(thDateTime(Date.now()))}</span><span>หน้า ${p}/3</span></div>`;
+  const miniHead = t => `<div class="sh-head"><div><div class="sh-kicker">LIFTING PLAN · S-320</div><div class="sh-title" style="font-size:20px">${t}</div></div><div class="sh-meta"><span>เลขที่แผน</span><b>${esc(s.docNo||"—")}</b><span>วันที่ยก</span><b>${esc(thDate(s.date))}</b></div></div>`;
+  const tr = r.train.map(t=>`<tr><td>${esc(t.lab)}</td><td>${esc(t.name||"—")}</td><td class="m">${t.date?esc(thDate(t.date)):"—"}</td><td style="color:${t.state==="expired"?"#C92D2D":t.state==="soon"?"#B86200":"#3A4654"}">${t.state==="ok"?"ภายใน 2 ปี":t.state==="soon"?"ใกล้ครบ 2 ปี":t.state==="expired"?"เกิน 2 ปี":t.state==="missing"?"ไม่ระบุวันที่":"—"}</td></tr>`).join("");
+
+  const p1 = `<div class="sheet">
+    <div class="sh-head">
+      <div><div class="sh-kicker">LIFTING PLAN · S-320</div><div class="sh-title">แผนการยก</div><div class="sh-task">${esc(s.task||"—")}</div></div>
+      <div class="sh-meta"><span>ชนิด</span><b style="font-family:inherit">${OH?esc(OH_TYPES[r.ohType]||"เครนเหนือศีรษะ"):"ปั้นจั่นเคลื่อนที่"}</b><span>เลขที่แผน</span><b>${esc(s.docNo||"—")}</b><span>วันที่ยก</span><b>${esc(thDate(s.date))}${has(s.time)?" "+esc(s.time):""}</b><span>Safe Work Permit</span><b>${esc(s.ptw||"—")}</b></div>
+    </div>
+    <div class="sh-verdict" style="border-color:${TONE_HEX[tone]};background:${TONE_SOFT_HEX[tone]}">
+      <div class="sh-v-main"><div class="sh-v-label">ผลการประเมินตาม S-320 · ${r.ready?"พร้อมยก":"ยังไม่พร้อมยก"}</div><div class="sh-v-title" style="color:${TONE_HEX[tone]}">${esc(r.V.title)}</div><div class="sh-v-sub">${esc(r.V.sub)}</div></div>
+      <div class="sh-v-pct"><b style="color:${TONE_HEX[tone]}">${r.pct!=null?r.pct.toFixed(1)+"%":"—"}</b><span>ของพิกัดยก</span></div>
+    </div>
+    <ul class="sh-reasons">${reasons}</ul>
+    <section class="sh-sec"><h3><span class="n">01</span>ข้อมูลงานยกและทีมงาน</h3>
+      <div class="kv">${kv("พื้นที่และตำแหน่ง", s.area||"—","full")}${kv("จุดยก → จุดวาง", s.pickset||"—","full")}</div>
+      <table class="sh-tbl" style="margin-top:6px"><thead><tr><th>หน้าที่</th><th>ชื่อ-สกุล</th><th>อบรม / ทบทวนล่าสุด</th><th>สถานะ (ทุก 2 ปี)</th></tr></thead><tbody>${tr}</tbody></table>
+    </section>
+    <div class="sh-cols">
+      <section class="sh-sec"><h3><span class="n">02</span>น้ำหนัก (kg)</h3>
+        <div class="kv one">
+          ${kv("สภาพอุปกรณ์ / แหล่งข้อมูล", `${s.cond==="used"?"ใช้แล้ว":"ใหม่"} / ${WSRC[s.wsrc]||"—"}`)}
+          ${kv("น้ำหนักเปล่าของชิ้นงาน", kg(r.loadW))}
+          ${OH ? kv("Headache ball / Block", "ไม่นับรวม") : kv("Headache ball / Block", `${kg(r.ballW)} / ${kg(r.hookW)}`)}
+          ${kv("Lifting bar", kg(r.beamW))}
+          ${kv("สลิงและ Shackle", kg(r.rigW))}
+          ${kv("ค่าเผื่อของค้าง / อื่นๆ", `${kg(r.allowW)} / ${kg(r.otherW)}`)}
+          ${kv("น้ำหนักรวม (Total)", kg(r.gross)+" kg","tot")}
+        </div>
+      </section>
+      ${OH ? `<section class="sh-sec"><h3><span class="n">03</span>เครนเหนือศีรษะ</h3>
+        <div class="kv one">
+          ${kv("เครน", s.craneName||"—")}
+          ${kv("หมายเลข / รอกที่ใช้", `${s.craneId||"—"} / ${s.hoist==="aux"?"Auxiliary":"Main"}`)}
+          ${kv("ผลตรวจ ปจ.1 ใช้ได้ถึง", thDate(s.inspExp))}
+          ${kv("พิกัดเครน / รอก", `${kg(r.swlC)} / ${kg(r.swlH)} kg`)}
+          ${kv("Span", r.span>0?f1(r.span)+" m":"—")}
+          ${kv("พิกัดยกที่ใช้", r.cap>0?kg(r.cap)+" kg":"—","tot")}
+        </div></section>`
+      : `<section class="sh-sec"><h3><span class="n">03</span>ข้อมูลปั้นจั่น</h3>
+        <div class="kv one">
+          ${kv("ประเภทของปั้นจั่น", s.craneName||"—")}
+          ${kv("หมายเลข / ผลตรวจ ปจ.2", `${s.craneId||"—"} / ${thDate(s.inspExp)}`)}
+          ${kv("ความยาวบูม", f1(r.L)+" m")}
+          ${kv("รัศมี ยก / วาง", `${f1(r.Rp)} / ${f1(r.Rs)} m`)}
+          ${kv("มุมบูม ยก / วาง", `${r.angP!=null?r.angP.toFixed(1):"—"}° / ${r.angS!=null?r.angS.toFixed(1):"—"}°`)}
+          ${r.manual ? kv("พิกัด หลัง / หน้า / ข้าง", `${kg(r.dirs.rear)} / ${kg(r.dirs.front)} / ${kg(r.dirs.side)}`) : kv("Load chart", r.lk.cap!=null?`บูม ${LC.booms[r.lk.bi].toFixed(1)} × รัศมี ${LC.radii[r.lk.ri]} m (สาธิต)`:"—")}
+          ${kv("พิกัดยก / 95%", r.cap>0?`${kg(r.cap)} / ${kg(r.cap95)} kg`:"—","tot")}
+        </div></section>`}
+    </div>
+    ${foot(1)}
+  </div>`;
+
+  const p2 = `<div class="sheet">
+    ${miniHead("แผนการยก (ต่อ)")}
+    <section class="sh-sec"><h3><span class="n">03</span>ภาพการยกและการใช้พิกัด</h3>
+      <div class="sh-diag"><img src="${diag}" alt="">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${bar(OH?"ใช้พิกัดเครน":"ใช้พิกัดยกปั้นจั่น", r.pct, C("cap").tone, r.pctTxt)}
+          ${bar("แรงตึงสลิงเทียบ WLL", r.slingPct, C("sling").tone, r.slingPct!=null?r.slingPct.toFixed(0)+"%":"—")}
+          ${bar("แรงตึงเทียบพิกัด Shackle", r.shCap>0&&r.tension!=null?r.tension/r.shCap*100:null, C("shackle").tone, r.shCap>0&&r.tension!=null?(r.tension/r.shCap*100).toFixed(0)+"%":"—")}
+          ${OH ? bar("ความสูงตะขอที่ต้องใช้", r.headPct, C("head").tone, r.reqHook!=null?`${f2(r.reqHook)}/${f1(r.hookHmax)} m`:"—") : bar("แรงกดบนพื้น", r.groundPct, C("ground").tone, r.groundPct!=null?r.groundPct.toFixed(0)+"%":"—")}
+          ${r.windApplies ? bar("ความเร็วลม", r.windPct, C("wind").tone, r.windPct!=null?`${f1(r.wind)}/${f1(r.windLim)} m/s`:"—") : ""}
+          <div style="font-size:10.5px;color:#5A6776">${r.exempt?"S-320 ข้อ F: ห้ามยกเกินพิกัดที่ระบุบนป้าย":"S-320: Critical lift เมื่อเกิน 75% (หรือ 50% ตามเงื่อนไข) · ยกได้เมื่อน้อยกว่า 95%"}</div>
+        </div>
+      </div>
+    </section>
+    <div class="sh-cols">
+      <section class="sh-sec"><h3><span class="n">04</span>สลิงและ Shackle</h3>
+        <div class="kv one">
+          ${kv("ประเภท / รูปแบบการผูก", `${SLING_TYPES[s.slingType]||"—"} / ${HITCH[s.hitch]||"—"}`)}
+          ${kv("จำนวนสลิง / คิดรับ", `${r.legs} / ${r.legsEff} เส้น`)}
+          ${kv("ขนาด / ความยาวสลิง", `${s.slingSize||"—"} / ${has(s.slingLen)?f1(num(s.slingLen))+" m":"—"}`)}
+          ${kv("มุมสลิงจากแนวนอน", r.legs===1?"90°":(r.sAng>0?r.sAng.toFixed(0)+"°":"—"))}
+          ${kv("แรงตึงต่อเส้น / WLL", `${f2(r.tension)} / ${f1(r.wll)} t`)}
+          ${kv("Shackle หมุด / พิกัด", `${s.pinSize?s.pinSize+" in":"—"} / ${f1(r.shCap)} t`,"tot")}
+        </div>
+      </section>
+      ${OH ? `<section class="sh-sec"><h3><span class="n">05</span>ระยะยกและเส้นทาง</h3>
+        <div class="kv one">
+          ${kv("ความสูงตะขอสูงสุด", f1(r.hookHmax)+" m")}
+          ${kv("สิ่งกีดขวาง + ระยะพ้น", `${f2(r.obst)} + ${f2(r.clear)} m`)}
+          ${kv("ชิ้นงาน + สลิง", `${f2(r.loadHt)} + ${r.slingH!=null?f2(r.slingH):"—"} m`)}
+          ${kv("ความสูงตะขอที่ต้องใช้", r.reqHook!=null?f2(r.reqHook)+" m":"—")}
+          ${kv("ระยะตะขอเหลือ", r.headMargin!=null?f2(r.headMargin)+" m":"—","tot")}
+          ${r.windApplies ? kv("ลม / ค่าสูงสุด", `${has(s.wind)?f1(r.wind):"—"} / ${f1(r.windLim)} m/s`) : kv("ตำแหน่งติดตั้ง", "ในอาคาร")}
+        </div></section>`
+      : `<section class="sh-sec"><h3><span class="n">05</span>พื้นรับขาค้ำและลม</h3>
+        <div class="kv one">
+          ${kv("น้ำหนักปั้นจั่นรวมตุ้มถ่วง", kg(r.craneW)+" kg")}
+          ${kv(r.outManual?"แรงกดขาค้ำ (ผู้ผลิต)":"แรงกดขาค้ำ (ประมาณ 75%)", kg(r.react)+" kg")}
+          ${kv("แผ่นรองขาค้ำ", `${f2(num(s.padW))} × ${f2(num(s.padL))} m`)}
+          ${kv("แรงกดบนพื้น / รับได้", `${f1(r.press)} / ${f1(r.allow)} t/m²`,"tot")}
+          ${kv("ลม / ค่าสูงสุดที่กำหนด", `${has(s.wind)?f1(r.wind):"—"} / ${f1(r.windLim)} m/s`)}
+        </div></section>`}
+    </div>
+    <section class="sh-sec"><h3><span class="n">06</span>เกณฑ์ Critical lift ตาม S-320 I.C<span class="r">${r.exempt?"ยกเว้นตามข้อ F":(r.critReasons.length?"เป็น Critical lift":"ไม่เป็น Critical lift")}</span></h3>
+      ${r.exempt ? `<div style="font-size:11px;color:#3A4654">ปั้นจั่นรางในอาคาร รอกโมโนเรล และรอกแขนยึด ไม่ต้องทำใบอนุญาตงานยกที่มีความเสี่ยงตาม S-320 ข้อ F แต่ห้ามยกเกินพิกัดที่ระบุ</div>`
+       : `<table class="sh-tbl"><thead><tr><th>เกณฑ์</th><th>ข้อมูลจากแผน</th><th style="width:80px">ผล</th></tr></thead><tbody>${r.critEval.map(c=>`<tr><td>${esc(c.t)}</td><td>${esc(c.note)}</td><td style="font-weight:600;color:${c.met?"#B86200":"#12845A"}">${c.met?"เข้าเกณฑ์":"ไม่เข้าเกณฑ์"}</td></tr>`).join("")}</tbody></table>`}
+      <div style="font-size:11px;color:#3A4654;margin-top:6px">สายไฟฟ้าใกล้แนวยก: ${r.power ? `${esc(String(r.kV||"—"))} kV · ห่าง ${f2(r.pDist)} m · ต้องไม่น้อยกว่า ${f2(r.pReq)} m` : "ไม่มี"}</div>
+    </section>
+    ${foot(2)}
+  </div>`;
+
+  const clMark = v => v==="y" ? `<span class="mk y">ใช่</span>` : v==="n" ? `<span class="mk n">ไม่ใช่</span>` : v==="na" ? `<span class="mk na">N/A</span>` : `<span class="mk">—</span>`;
+  const p3 = `<div class="sheet">
+    ${miniHead("แผนการยก (ต่อ)")}
+    <section class="sh-sec"><h3><span class="n">07</span>แบบตรวจสอบก่อนงานยก (เอกสารแนบ 2)<span class="r">ตอบแล้ว ${r.clAnswered}/${r.clTotal}${r.clNo?` · ไม่ใช่ ${r.clNo} ข้อ`:""}</span></h3>
+      <ul class="sh-cl">${r.CK.map((c,i)=>`<li>${clMark((s.cl||{})[c.id])}<span>${c.id.startsWith("o")?"+":""}${c.id.startsWith("o")?c.id.slice(1):i+1}. ${esc(c.t)}</span></li>`).join("")}</ul>
+    </section>
+    <section class="sh-sec"><h3><span class="n">08</span>การทวนสอบและอนุมัติ<span class="r">ลงนาม ${r.sigDone}/${r.sigReq.length}</span></h3>
+      <div style="font-size:11px;margin-bottom:6px">${r.isCritical?`ผลคำนวณของผู้ทบทวนคนที่ 1 และ 2 ตรงกัน: <b style="color:${s.calcMatch?"#12845A":"#B86200"}">${s.calcMatch?"ยืนยันแล้ว":"ยังไม่ยืนยัน"}</b> (S-320 II.B)`:"งานนี้ไม่เป็น Critical lift ผู้ทบทวนคนที่ 2 และตัวแทน NatureWorks ไม่บังคับ"}</div>
+      <div class="sh-sigs s3">${SIGS.map(g=>{ const d=s.sigs[g.id]||{}; const req=r.sigReq.includes(g.id);
+        return `<div class="sh-sig" style="${req?"":"opacity:.55"}"><div class="role">${esc(g.role)}<small>${esc(req?g.sub:"ไม่บังคับสำหรับแผนนี้")}</small></div><div class="img">${d.img?`<img src="${d.img}" alt="">`:""}</div><div class="nm">${esc(d.name||"(..............................)")}</div><div class="dt">${d.at?esc(thDateTime(d.at)):"วันที่ ....../....../......"}</div></div>`; }).join("")}</div>
+    </section>
+    <div class="sh-note">คำนวณจากข้อมูลที่ผู้จัดทำกรอก พิกัดยกต้องอ้างอิงข้อมูลของผู้ผลิตปั้นจั่นคันที่ใช้จริง แรงกดขาค้ำแบบประมาณใช้ 75% ของน้ำหนักปั้นจั่นรวมน้ำหนักยก ผู้บังคับปั้นจั่นและหัวหน้างานยกต้องมีสำเนา Safe Work Permit และใบอนุญาตงานยกก่อนเริ่มยก และยกได้ภายใต้เงื่อนไขในใบอนุญาตเท่านั้น (S-320 II.C)</div>
+    ${foot(3)}
+  </div>`;
+  return p1 + p2 + p3;
+}
+
+$("#btn-pdf").addEventListener("click", async ()=>{
+  const btn = $("#btn-pdf"); if(btn.disabled || !pdfMode) return;
+  const lbl = btn.querySelector(".lbl"), old = lbl.textContent;
+  btn.disabled = true; lbl.textContent = "กำลังสร้าง…";
+  const host = $("#sheet-host");
+  try{
+    if(!window.html2canvas || !window.jspdf) throw {code:"lib"};
+    host.innerHTML = sheetHTML();
+    try{ await document.fonts.ready; }catch(_){}
+    await Promise.all($$("img",host).map(im=> im.complete ? null : new Promise(res=>{ im.onload=im.onerror=res; })));
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({unit:"mm", format:"a4", orientation:"portrait", compress:true});
+    const pages = $$(".sheet", host);
+    for(let i=0;i<pages.length;i++){
+      const cv = await window.html2canvas(pages[i], {scale:2, backgroundColor:"#ffffff", logging:false, useCORS:true});
+      if(i) pdf.addPage();
+      pdf.addImage(cv.toDataURL("image/jpeg",0.92), "JPEG", 0, 0, 210, 297);
+    }
+    const blob = pdf.output("blob");
+    host.innerHTML = "";
+    const name = (S.docNo||"lifting-plan").replace(/[^\w฀-๿.-]+/g,"-") + ".pdf";
+    if(pdfMode==="claude"){ await downloads.save({filename:name, data:blob}); toast("ส่งไฟล์ PDF แล้ว"); }
+    else { browserDownload(blob, name); toast("ดาวน์โหลด PDF แล้ว"); }
+  }catch(e){
+    const code = e && e.code;
+    if(code==="declined") toast("ยกเลิกการบันทึก PDF");
+    else if(code==="rate_limited") toast("มีหน้าต่างบันทึกเปิดอยู่ ลองอีกครั้งในอีกสักครู่");
+    else if(code==="lib") toast("ตัวสร้าง PDF ยังโหลดไม่เสร็จ ลองอีกครั้ง");
+    else if(["unavailable","not_granted","capability_disabled","capability_removed","extension_not_enabled"].includes(code)){ toast("มุมมองนี้บันทึกไฟล์ไม่ได้"); btn.hidden=true; }
+    else toast("สร้าง PDF ไม่สำเร็จ ลองอีกครั้ง");
+  }finally{ host.innerHTML = ""; btn.disabled = false; lbl.textContent = old; }
+});
+
+/* ================= (i) help: where each field's data comes from ================= */
+/* Matches LP-G01 Rev.1. Entry = {src, how, ref, no}; a function gets OH (overhead mode). */
+const TEAM_SRC = "รายชื่อจากผู้รับเหมา + สำเนาวุฒิบัตร (Certificate) ของแต่ละคน";
+const TRAIN = no=>({no, src:"วุฒิบัตรหรือใบรับรองการอบรมของคนนั้น", how:"กรอกวันที่อบรมหรือทบทวน<b>ครั้งล่าสุด</b> · S-320 กำหนดให้อบรมหรือทบทวนทุก 2 ปี ถ้านับถึงวันยกเกิน 2 ปี ระบบจะเตือน และต้องอบรมใหม่ก่อนทำงาน", ref:"S-320 E"});
+const CAPDIR = side=>({no:"3.12", src:"Load chart ของปั้นจั่นรุ่นที่ใช้ ตารางที่ตรงกับการตั้งปั้นจั่นจริง (กางขาสุด ตุ้มถ่วงที่ติดตั้ง)",
+  how:`พิกัดเมื่อบูมอยู่<b>${side}</b> อ่านที่ความยาวบูมและรัศมีสูงสุด ถ้าค่าที่ใช้อยู่ระหว่างช่อง ให้ใช้ช่อง<b>บูมยาวกว่าและรัศมีไกลกว่า</b> · Chart เป็นตันให้คูณ 1,000 · Chart แบบ 360° ใส่ค่าเดียวกันทั้ง 3 ช่อง · ระบบใช้ค่าต่ำสุด (สภาวะเสี่ยงที่สุด)`, ref:"เอกสารแนบ 1 A.e"});
+const HELP = {
+  craneType:{no:"เลือกแบบฟอร์ม", src:"ดูว่างานนี้ใช้ปั้นจั่นแบบไหน", how:"ปั้นจั่นเคลื่อนที่ (รถเครน) ใช้แบบฟอร์ม <b>LP-01</b> · เครนเหนือศีรษะ Gantry Jib และ Monorail ใช้ <b>LP-02</b> · ช่องกรอกและวิธีคำนวณจะเปลี่ยนตามชนิดที่เลือก", ref:"S-320 F"},
+  task:{no:"1.1", src:"ใบสั่งงาน (Work order) หรือ Safe Work Permit", how:"ระบุชื่อชิ้นงาน + Tag No. + สิ่งที่จะทำ เช่น “ยก E-201 ขึ้นฐาน”", ref:"เอกสารแนบ 1"},
+  area: OH=>({no:"1.2", src:"สำรวจหน้างาน, ผังพื้นที่ (Plot plan)", how: OH ? "ระบุอาคารและช่องเครนที่ใช้ยก" : "ระบุตำแหน่งที่จะตั้งปั้นจั่นจริง ไม่ใช่แค่ชื่อพื้นที่ใหญ่", ref:"เอกสารแนบ 1"}),
+  pickset: OH=>({no:"1.3", src:"สำรวจหน้างาน, แบบติดตั้ง", how: OH ? "ใช้กำหนดเส้นทางเคลื่อนย้ายและหาสิ่งกีดขวางในส่วนที่ 5" : "ใช้วัดรัศมีที่จุดยกและจุดวางในส่วนที่ 3"}),
+  docNo:{no:"หัวกระดาษ", src:"ระบบเลขที่เอกสารของแผนก หรือกำหนดเอง", how:"ใช้อ้างอิงแผนนี้ใน Safe Work Permit และตอนเก็บเอกสาร ควรตั้งรูปแบบเดียวกันทุกแผน เช่น LP-ปี-ลำดับ"},
+  ptw:{no:"1.4", src:"ระบบใบอนุญาตทำงาน (Safe Work Permit) ของโรงงาน", how:"NatureWorks อนุมัติใบอนุญาตงานยกร่วมกับ SWP · ถ้ายังไม่ได้เลข เว้นไว้ก่อนแล้วกรอกตอนออก SWP", ref:"S-320 II.B"},
+  date:{no:"1.5", src:"แผนงาน", how:"ระบบใช้วันนี้ตรวจวันหมดอายุผลตรวจปั้นจั่นและวันอบรมของทีม · ถ้าเลื่อนวัน ต้องตรวจลม ผลตรวจ และวันอบรมใหม่"},
+  time:{no:"1.6", src:"แผนงาน", how:"เวลาเริ่มยก ควรเลี่ยงช่วงลมแรงหรือช่วงเปลี่ยนกะ"},
+  supervisor:{no:"1.7", src:TEAM_SRC, how:"คนที่ควบคุมงานยกทั้งหมด และเป็นผู้ประเมินสภาพดินใต้ขาค้ำ · ชื่อต้องตรงกับวุฒิบัตรและเป็นคนที่มาทำงานจริง", ref:"S-320 I.D"},
+  operator: OH=>({no:"1.8", src:TEAM_SRC, how:(OH?"คนที่บังคับเครนในงานนี้":"คนขับปั้นจั่นคันที่ใช้จริง")+" · ชื่อต้องตรงกับวุฒิบัตร ถ้าเปลี่ยนคนต้องแก้แผน", ref:"S-320 I.D"}),
+  signalman:{no:"1.9", src:TEAM_SRC, how:"คนที่ให้สัญญาณมือหรือวิทยุแก่ผู้บังคับปั้นจั่น ควรมีคนเดียวตลอดงานยก · ชื่อต้องตรงกับวุฒิบัตร", ref:"S-320 I.D"},
+  rigger:{no:"1.10", src:TEAM_SRC, how:"คนที่ผูกและตรวจสลิงกับชิ้นงาน · ชื่อต้องตรงกับวุฒิบัตร", ref:"S-320 I.D"},
+  supTrain:TRAIN("1.7"), opTrain:TRAIN("1.8"), sigTrain:TRAIN("1.9"), rigTrain:TRAIN("1.10"),
+  cond:{no:"ส่วนที่ 2", src:"ดูที่ชิ้นงาน และประวัติการใช้งาน", how:"เลือก “ใช้แล้ว” ถ้าเคยใช้งานมาแล้ว อุปกรณ์ใช้แล้วมักมีของค้าง ให้ใส่ค่าในช่อง “ค่าเผื่อของค้างในอุปกรณ์”", ref:"S-320 II.A"},
+  wsrc:{no:"ส่วนที่ 2", src:"Nameplate, Drawing, การคำนวณ หรือการชั่ง", how:"เลือกแหล่งที่ใช้จริง · ป้ายน้ำหนักอาจเชื่อไม่ได้ ให้ตรวจกับแบบเสมอ · ชิ้นงานรูปร่างซับซ้อนให้วิศวกรช่วยคำนวณ", ref:"S-320 II.A"},
+  loadW:{no:"2.1", src:"Nameplate ของชิ้นงาน, Drawing, Data sheet ของผู้ผลิต", how:"คือ<b>น้ำหนักของสิ่งที่จะยก</b> ไม่ใช่น้ำหนักปั้นจั่น (เอกสารแนบ 1 ฉบับภาษาไทยเขียนว่า “น้ำหนักของปั้นจั่น” ซึ่งชวนเข้าใจผิด) · กรอกเป็น kg ถ้าป้ายเป็นตันให้คูณ 1,000 เช่น 13 t = 13,000 kg", ref:"เอกสารแนบ 1 B"},
+  ballW:{no:"2.2", src:"ตัวเลขบนลูกตุ้ม, คู่มือปั้นจั่น", how:"ลูกตุ้มถ่วงของสายรอกเดี่ยว (Whip line) ถ้าไม่ได้ติดตั้งหรือไม่ได้ใช้ใส่ 0", ref:"เอกสารแนบ 1 B"},
+  hookW:{no:"2.3", src:"ตัวเลขบน Hook block, คู่มือปั้นจั่น, หมายเหตุใต้ตาราง load chart", how:"พิกัดใน load chart ส่วนใหญ่ยังไม่ได้หักน้ำหนัก block จึงต้องนับ block รวมในน้ำหนักยก · อ่านหมายเหตุใต้ตาราง chart ประกอบเสมอ", ref:"เอกสารแนบ 1 B"},
+  beamW:{no:"2.4", src:"ป้ายบนคานยก, ใบรับรองการออกแบบ", how:"ไม่ได้ใช้ใส่ 0 · คานยกที่ทำขึ้นเฉพาะงานต้องมีแบบที่วิศวกรอนุมัติและผ่านการตรวจ NDT", ref:"เอกสารแนบ 1 B"},
+  rigW:{no:"2.5", src:"เอกสารผู้ผลิต, แคตตาล็อก หรือการชั่ง", how:"รวมสลิง Shackle และอุปกรณ์ทุกชิ้นที่ห้อยอยู่ใต้ตะขอ เช่น สลิง 200 kg + Shackle 300 kg = 500 kg", ref:"เอกสารแนบ 1 B"},
+  allowW:{no:"2.6", src:"ประเมินจากสภาพและประวัติการใช้งาน, สอบถามฝ่ายผลิต", how:"น้ำหรือผลิตภัณฑ์ค้าง สนิมหรือคราบ ของแข็งที่เกาะอยู่ · ถ้าไม่แน่ใจ ให้ใช้ปั้นจั่นที่มีระบบแสดงน้ำหนัก", ref:"S-320 II.A"},
+  otherW:{no:"2.7", src:"ตามสภาพงาน", how:"เช่น ชิ้นส่วนที่ติดตั้งเพิ่ม ฉนวน นั่งร้านหรือท่อที่ติดไปกับชิ้นงาน · ไม่มีใส่ 0", ref:"เอกสารแนบ 1 B"},
+  craneName: OH=>OH
+    ? {no:"3.1", src:"ป้ายที่ตัวเครน, ทะเบียนเครื่องจักรของโรงงาน", how:"ระบุชื่อเครน อาคาร และช่องเครน ให้คนอ่านรู้ว่าเป็นเครนตัวไหน"}
+    : {no:"3.1", src:"ป้ายที่ตัวรถ, Spec sheet จากผู้ให้เช่า", how:"ระบุยี่ห้อ รุ่น และพิกัด เช่น Tadano GR-600N · ต้องเป็นคันที่จะมาจริง ถ้าเปลี่ยนคันต้องทำแผนใหม่"},
+  craneId: OH=>({no:"3.2", src: OH ? "หมายเลขเครื่องจักรในทะเบียนของโรงงาน" : "ป้ายทะเบียนรถ หรือ Serial No. ใน Spec sheet", how:"ใช้ยืนยันว่าตรงกับรายงานผลตรวจ"}),
+  inspExp: OH=>OH
+    ? {no:"3.3", src:"รายงานผลตรวจเครน (ปจ.1) ที่วิศวกรลงนาม", how:"กรอกวันหมดอายุของผลตรวจ ต้องไม่หมดก่อนวันยก"}
+    : {no:"3.3", src:"รายงานผลตรวจปั้นจั่น (ปจ.2) ที่วิศวกรลงนาม", how:"กรอกวันหมดอายุ ต้องไม่หมดก่อนวันยก และส่งสำเนาให้ NatureWorks · ถ้าปั้นจั่นหยุดใช้ตั้งแต่ 6 เดือน ต้องทดสอบใหม่", ref:"เอกสารแนบ 2 ข้อ 4"},
+  ohType:{no:"3.4", src:"ดูที่ตัวเครน", how:"ช่องนี้ตัดสินว่าเข้า S-320 หรือไม่: <b>Gantry crane</b> อยู่ในขอบเขต · Overhead ในอาคาร Jib และ Monorail ได้รับยกเว้นตามข้อ F แต่ยังต้องไม่ยกเกินพิกัด", ref:"S-320 F"},
+  hoist:{no:"3.6", src:"ดูว่าใช้รอกตัวไหนยกในงานนี้", how:"เครนที่มี 2 รอก รอก Auxiliary มักมีพิกัดต่ำกว่ารอกหลักมาก ให้กรอกพิกัดของรอกที่ใช้จริงในช่อง “พิกัดยกของรอกที่ใช้”"},
+  swlCrane:{no:"3.5", src:"ป้ายพิกัด (SWL) ที่คานเครน", how:"กรอกเป็น kg เช่น 15 t = 15,000 · ถ้าป้ายเลือน ใช้ค่าในรายงาน ปจ.1 และแจ้งให้ติดป้ายใหม่ · ระบบใช้ค่าที่ต่ำกว่าระหว่างเครนกับรอก"},
+  swlHoist:{no:"3.6", src:"ป้ายพิกัดที่ตัวรอก", how:"กรอกพิกัดของรอกที่เลือก (Main หรือ Auxiliary) เป็น kg"},
+  span:{no:"3.8", src:"ป้ายเครน, แบบอาคาร หรือวัดระยะระหว่างราง", how:"ข้อมูลประกอบแผน ไม่ได้ใช้คำนวณพิกัด"},
+  craneW:{no:"3.4", src:"Spec sheet ของผู้ผลิต หรือขอจากผู้ให้เช่า", how:"น้ำหนักรถรวมตุ้มถ่วงที่ติดตั้งจริง (kg) ใช้ประมาณแรงกดขาค้ำในส่วนที่ 5 · ถ้ามีค่าแรงกดขาค้ำจากผู้ผลิต ช่องนี้ไม่มีผล"},
+  boom:{no:"3.6", src:"ผู้บังคับปั้นจั่นกำหนด, จอ LMI, ตาราง load chart", how:"ความยาวบูมที่จะใช้จริง · ถ้าอยู่ระหว่างช่องของ load chart ให้อ่านช่องบูมที่ยาวกว่า"},
+  radiusPick:{no:"3.7", src:"วัดหน้างานด้วยเทปหรือเลเซอร์ หรือวัดจากแบบ", how:"วัดจาก<b>กึ่งกลางชิ้นงานถึง Center pin</b> (จุดหมุนของปั้นจั่น) ไม่ใช่จากขอบรถ"},
+  radiusSet:{no:"3.8", src:"วัดหน้างาน หรือวัดจากแบบ", how:"วัดจากกึ่งกลางจุดวางถึง Center pin · ระบบใช้ค่าที่มากกว่าระหว่างจุดยกกับจุดวางไปอ่านพิกัด"},
+  capMode:{no:"3.12", src:"Load chart ของปั้นจั่นคันที่ใช้", how:"“Load chart สาธิต” ใช้สอนวิธีอ่านเท่านั้น · <b>งานจริง</b>ให้เลือก “กรอกจาก chart จริง” แล้วกรอกพิกัดจาก chart ของรุ่นนั้น", ref:"เอกสารแนบ 1 A.e"},
+  capRear:CAPDIR("ด้านหลังรถ (Over rear)"), capFront:CAPDIR("ด้านหน้ารถ (Over front)"), capSide:CAPDIR("ด้านข้างรถ (Over side)"),
+  legs:{no:"4.3", src:"แผนการผูก (Rigging plan)", how:"จำนวนขาสลิงที่คล้องตะขอ · ระบบคิดว่ารับน้ำหนักจริงแค่ 2 ขาเมื่อมี 2 ขาขึ้นไป เพราะสลิงมักยาวไม่เท่ากัน"},
+  hitch:{no:"4.2", src:"แผนการผูก, ตารางพิกัดของผู้ผลิตสลิง", how:"รัดคอ (Choker) รับได้น้อยกว่าผูกตรง ส่วน Basket รับได้มากกว่า · พิกัด WLL ที่กรอกต้องตรงกับรูปแบบที่เลือก"},
+  slingType:{no:"4.1", src:"ป้าย (Tag) ที่สลิง", how:"เลือกตามชนิดจริง และแนบเอกสารผู้ผลิต · ตรวจสภาพสลิงตามเอกสารแนบ 3 ก่อนใช้", ref:"เอกสารแนบ 3"},
+  slingSize:{no:"4.4", src:"ป้ายที่สลิง หรือวัดด้วยเวอร์เนียร์", how:"Wire rope ใส่เส้นผ่านศูนย์กลาง (mm) · Web หรือ Round sling ใส่ความกว้างหรือสีตามพิกัด"},
+  slingLen:{no:"4.5", src:"ป้ายที่สลิง หรือวัดจริง", how:"ความยาวต่อขา (m) ใช้หามุมสลิง"},
+  wll:{no:"4.6", src:"ป้าย (Tag) ที่สลิง, ใบรับรองจากผู้ผลิต", how:"หน่วย<b>ตันต่อเส้น</b> ตามรูปแบบการผูก ค่าบนป้ายรวม Safety factor แล้ว · ห้ามใช้สลิงที่ป้ายหายหรืออ่านไม่ได้"},
+  spread:{no:"4.14", src:"วัดบนชิ้นงาน หรือดูจากแบบ", how:"ระยะระหว่างจุดยก (Lifting lug) ที่สลิงจับ ใช้คำนวณความสูงสลิง = (ระยะ ÷ 2) × tan θ"},
+  slingAng:{no:"4.7", src:"วัดหน้างาน หรือคำนวณ", how:"วัดจากแนวนอน (90° = สลิงตั้งตรง) · คำนวณได้จาก cos θ = (ระยะห่างจุดยก ÷ 2) ÷ ความยาวสลิง · ต้องไม่น้อยกว่า 45° ถ้าน้อยกว่าต้องแนบการคำนวณแรงรับ", ref:"S-320 E"},
+  pinSize:{no:"4.12", src:"ตัวเลขที่ปั๊มบนตัว Shackle", how:"ขนาดหมุดเป็น<b>นิ้ว</b> (ตารางใน S-320 เขียนว่าเซนติเมตร แต่ตัวเลขเป็นนิ้ว)"},
+  shackleCap:{no:"4.13", src:"ค่า WLL ที่ปั๊มบน Shackle, เอกสารผู้ผลิต", how:"หน่วยตัน ต้องไม่น้อยกว่าแรงตึงต่อขาที่ระบบคำนวณ"},
+  hookH:{no:"5.2", src:"Spec ของเครน หรือยกตะขอขึ้นสุดแล้ววัดด้วยเลเซอร์", how:"วัดจากพื้นถึงปากตะขอเมื่อยกขึ้นสุด"},
+  obstH:{no:"5.3", src:"เดินสำรวจเส้นทางจากจุดยกถึงจุดวาง", how:"ความสูงของสิ่งที่สูงที่สุดที่ชิ้นงานต้องข้าม เช่น เครื่องจักร ราวกันตก ท่อ · เลี่ยงเส้นทางที่ผ่านเหนือคนทำงาน", ref:"S-320 E"},
+  clearReq:{no:"5.4", src:"มาตรฐานของบริษัท", how:"ระยะว่างใต้ชิ้นงานตอนข้ามสิ่งกีดขวาง โปรแกรมตั้งไว้ 0.5 m ให้ปรับตามมาตรฐานบริษัท"},
+  loadHt:{no:"5.5", src:"แบบชิ้นงาน หรือวัดจริง", how:"วัดจากจุดล่างสุดของชิ้นงานถึงจุดยก (Lifting lug) ด้านบน"},
+  outMode:{no:"5.1", src:"ตารางหรือโปรแกรมแรงกดขาค้ำของผู้ผลิต", how:"มีค่าจากผู้ผลิตให้เลือก “ค่าจากผู้ผลิต” · ถ้าไม่มี ระบบประมาณ 75% ของ (น้ำหนักปั้นจั่น + น้ำหนักรวม) ใช้วางแผนเบื้องต้นเท่านั้น"},
+  outManual:{no:"5.1", src:"ผู้ผลิตหรือผู้ให้เช่าปั้นจั่น (โปรแกรมคำนวณแรงกดขาค้ำ)", how:"กรอกแรงกดของขาที่รับหนักที่สุด หน่วย kg (ตัน × 1,000)"},
+  padW:{no:"5.2", src:"วัดแผ่นรองที่จะใช้จริง", how:"แผ่นรองใต้ขาค้ำหนึ่งขา พื้นที่ = กว้าง × ยาว · แผ่นใหญ่ขึ้น แรงกดบนพื้นลดลง"},
+  padL:{no:"5.2", src:"วัดแผ่นรองที่จะใช้จริง", how:"แผ่นรองใต้ขาค้ำหนึ่งขา พื้นที่ = กว้าง × ยาว · แผ่นใหญ่ขึ้น แรงกดบนพื้นลดลง"},
+  ground:{no:"5.5", src:"วิศวกรโยธา, ผลเจาะสำรวจดิน, แบบพื้นคอนกรีต", how:"หน่วยตัน/ตร.ม. ผู้ประสานงานยกเป็นผู้ประเมิน · สำรวจหรือขุดตรวจให้เสร็จก่อน ระวังท่อและบ่อใต้ดิน", ref:"S-320 I.D"},
+  wind: OH=>({no: OH?"5.8":"5.7", src:"เครื่องวัดลม (Anemometer) ที่ระดับความสูงงาน หรือจอแสดงผลของปั้นจั่น", how:"วัดในวันยกก่อนเริ่มงาน หน่วย ม./วินาที (กม./ชม. ÷ 3.6)", ref:"เอกสารแนบ 2 ข้อ 1"}),
+  windLim: OH=>({no: OH?"5.9":"5.8", src:"คู่มือปั้นจั่น / คู่มือเครน", how:"ใช้ค่าที่ต่ำกว่าระหว่างคู่มือกับค่าที่คนคุมเชือกประคองยังควบคุมชิ้นงานได้ · ชิ้นงานที่มีพื้นที่รับลมมากควรใช้ค่าต่ำลง", ref:"S-320 E"}),
+  kV:{no:"6.2", src:"ป้ายที่เสาไฟ, การไฟฟ้า หรือฝ่ายไฟฟ้าโรงงาน", how:"ระบบคำนวณระยะขั้นต่ำให้: ไม่เกิน 50 kV = 3 m · เกิน 50 kV เพิ่ม 1 cm ต่อ 1 kV · ไม่แน่ใจให้ถามฝ่ายไฟฟ้า ห้ามเดา", ref:"S-320 E"},
+  "sigs.r1.name":{t:"ผู้ทบทวนคนที่ 1", no:"10", src:"ผู้ประสานงานยกหรือหัวหน้างานที่ทำแผนนี้", how:"คนที่กรอกข้อมูลและคำนวณแผนนี้ ลงนามหลังตรวจครบทุกส่วน · งานยกทั่วไปลงนามคนเดียวได้", ref:"S-320 II.B"},
+  "sigs.r2.name":{t:"ผู้ทบทวนคนที่ 2", no:"10", src:"คนที่มีความรู้ด้านงานยก เช่น ผู้บังคับปั้นจั่น หรือวิศวกร (ไม่ใช่คนที่ 1)", how:"ต้อง<b>คำนวณแยกเอง</b>โดยไม่ลอกจากคนที่ 1 แล้วนำผลมาเทียบ ถ้าต่างกันต้องแก้ให้ตรงก่อน แนบการคำนวณไว้กับแผน · บังคับเฉพาะ Critical lift", ref:"S-320 II.B"},
+  "sigs.nw.name":{t:"ตัวแทน NatureWorks", no:"10", src:"เจ้าของพื้นที่ ผู้จัดการฝ่ายซ่อมบำรุง หรือผู้ที่ได้รับมอบหมาย", how:"อนุมัติใบอนุญาตงานยกร่วมกับ Safe Work Permit หลังผู้ทบทวนทั้ง 2 คนลงนามแล้ว · บังคับเฉพาะ Critical lift", ref:"S-320 II.B"},
+  powerDist:{no:"6.3", src:"วัดหน้างาน หรือวัดจากแบบ", how:"ระยะใกล้สุดระหว่างสายไฟกับส่วนใดก็ได้ของปั้นจั่น สลิง หรือของที่ยก ตลอดการยก รวมตอนสวิงและตอนยกบูม", ref:"S-320 E"},
+};
+function helpFor(k){
+  const OH = S.craneType==="overhead", e = HELP[k];
+  return typeof e==="function" ? e(OH) : e;
+}
+function helpLabel(el){
+  const f = el.closest(".field, .typecard"); if(!f) return null;
+  return f.querySelector(":scope > .lblrow > label, :scope > .lblrow > .lbl, :scope > label, :scope > .lbl");
+}
+const INFO_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6.6" r="1.9" fill="currentColor"/><path d="M12 11v7.4" stroke="currentColor" stroke-width="2.9" stroke-linecap="round"/></svg>`;
+function attachHelp(){
+  const done = new Set();
+  $$("[data-k]").forEach(el=>{
+    const k = el.dataset.k; if(!HELP[k]) return;
+    const f = el.closest(".field, .typecard"); if(!f || done.has(f)) return;
+    const lab = helpLabel(el); if(!lab) return;
+    done.add(f);
+    let row = lab.parentElement;
+    if(!row.classList.contains("lblrow")){ row = document.createElement("div"); row.className = "lblrow"; lab.before(row); row.appendChild(lab); }
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "info"; b.innerHTML = INFO_ICON; b.dataset.help = k;
+    b.setAttribute("aria-haspopup","dialog"); b.setAttribute("aria-expanded","false");
+    const h0 = HELP[k];
+    b.setAttribute("aria-label", "ที่มาของข้อมูล: " + (h0 && h0.t ? h0.t+" " : "") + lab.textContent.trim());
+    row.appendChild(b);
+  });
+}
+let helpFrom = null;
+function openHelp(btn){
+  const k = btn.dataset.help, h = helpFor(k); if(!h) return;
+  const lab = helpLabel(btn), OH = S.craneType==="overhead";
+  const form = OH ? "LP-02" : "LP-01";
+  $("#help-no").textContent = /^[0-9]/.test(h.no) ? `แบบฟอร์ม ${form} ข้อ ${h.no}` : (h.no==="เลือกแบบฟอร์ม" ? "LP-01 / LP-02" : `แบบฟอร์ม ${form} · ${h.no}`);
+  $("#help-title").textContent = h.t ? `${h.t} · ${lab ? lab.textContent.trim() : ""}` : (lab ? lab.textContent.trim() : k);
+  $("#help-src").innerHTML = h.src;
+  $("#help-how").innerHTML = h.how;
+  const ref = $("#help-ref");
+  ref.innerHTML = h.ref ? `อ้างอิง <span>${esc(h.ref)}</span>` : "";
+  ref.hidden = !h.ref;
+  helpFrom = btn; btn.setAttribute("aria-expanded","true");
+  const d = $("#help"); d.hidden = false;
+  d.querySelector(".help-card").scrollTop = 0;
+  requestAnimationFrame(()=>{ d.classList.add("open"); $("#help-close").focus(); });
+}
+function closeHelp(){
+  const d = $("#help"); if(d.hidden) return;
+  d.classList.remove("open");
+  setTimeout(()=>{ d.hidden = true; }, reduceMotion ? 0 : 180);
+  if(helpFrom){ helpFrom.setAttribute("aria-expanded","false"); helpFrom.focus({preventScroll:true}); helpFrom = null; }
+}
+document.addEventListener("click", e=>{
+  const b = e.target.closest("button.info[data-help]");
+  if(b){ e.preventDefault(); openHelp(b); }
+});
+$("#help-close").addEventListener("click", closeHelp);
+$("#help").addEventListener("click", e=>{ if(e.target.id==="help") closeHelp(); });
+document.addEventListener("keydown", e=>{
+  if($("#help").hidden) return;
+  if(e.key==="Escape"){ e.preventDefault(); closeHelp(); }
+  else if(e.key==="Tab"){ e.preventDefault(); $("#help-close").focus(); }
+});
+
+/* ================= Init ================= */
+buildUI();
+attachHelp();
+fillInputs();
+render();
+initPads();
+setHdr();
+let rzT=null;
+window.addEventListener("resize", ()=>{ clearTimeout(rzT); rzT=setTimeout(()=>{ setHdr(); sizePads(); }, 150); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(setHdr).catch(()=>{});
+window.__lp = { compute:()=>compute(S), sheetHTML, get S(){return S;} };
+})();
+</script>
+</body>
+</html>
