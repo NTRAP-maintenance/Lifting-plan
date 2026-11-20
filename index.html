@@ -425,7 +425,7 @@ table.lc{border-collapse:separate;border-spacing:0;width:100%;font-family:var(--
 .sh-lcg.two{grid-template-columns:330px 1fr;align-items:start}
 .sh-lcg figure{margin:0;display:flex;flex-direction:column;gap:4px;min-width:0}
 .sh-lcg figcaption{font-size:9px;color:#5A6776;line-height:1.4}
-.sh-lcg img.rg{width:auto;max-width:100%;height:auto;max-height:350px;display:block;border:1px solid #E1E6EC;border-radius:6px}
+.sh-lcg img.rg{width:auto;max-width:100%;height:auto;max-height:310px;display:block;border:1px solid #E1E6EC;border-radius:6px}
 .sh-lcg:not(.two) img.rg{max-width:400px}
 table.plc.narrow{width:300px}
 table.plc{border-collapse:collapse;width:100%;font-family:"IBM Plex Mono",monospace;font-size:9.5px}
@@ -461,6 +461,34 @@ table.plc td.h{background:#FAE1DF;color:#C92D2D;font-weight:700;border:2.5px sol
 .field[data-state="bad"] .fmsg{color:var(--bad)}
 .field[data-state="warn"] .fmsg{color:var(--warn)}
 .field[data-state="ok"] .fmsg{color:var(--muted);font-weight:500}
+.field[data-state="bad"] .seg{border-color:var(--bad);background:var(--bad-soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 22%,transparent)}
+.field[data-state="warn"] .seg{border-color:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 20%,transparent)}
+.ro[data-tone="bad"]{border-color:var(--bad);background:var(--bad-soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 22%,transparent)}
+.ro[data-tone="bad"] .v{color:var(--bad)}
+.ro[data-tone="warn"]{border-color:var(--warn)}
+/* sling rating pickers */
+.seg.srcseg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+.seg.srcseg button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:9px 12px;min-height:56px}
+.seg.srcseg b{font-weight:600;font-size:14px;color:var(--ink)}
+.seg.srcseg small{font-size:12px;color:var(--muted);font-weight:400}
+.seg.srcseg button[data-v="none"][aria-pressed="true"]{background:var(--bad-soft)}
+.seg.srcseg button[data-v="none"][aria-pressed="true"] b{color:var(--bad)}
+.seg.colors{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));width:100%}
+.seg.colors button{display:flex;align-items:center;gap:7px;padding:7px 9px;font-size:13px;text-align:left}
+.seg.colors i{width:18px;height:18px;border-radius:5px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.seg.colors button.no i{background:repeating-linear-gradient(45deg,var(--line) 0 3px,transparent 3px 6px)}
+.seg.colors b{margin-left:auto;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap}
+.seg.colors button.no[aria-pressed="true"]{background:var(--bad-soft)}
+.seg.colors button.no[aria-pressed="true"] b{color:var(--bad)}
+@media (max-width:560px){.seg.srcseg{grid-template-columns:1fr}.seg.srcseg button{min-height:46px}}
+.entiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
+.entile{border:1px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--surface);display:flex;flex-direction:column;font-size:12px;color:var(--muted)}
+.entile b{font-family:var(--font-mono);font-size:14px;color:var(--ink);font-weight:600}
+.entile[data-on="true"]{border:2px solid var(--bad);color:var(--bad);padding:5px 7px}
+.entile[data-on="true"] b{color:var(--bad)}
+.sw[data-on="true"]{border:2px solid var(--bad);padding:5px 7px}
+.atable.optab th,.atable.optab td{text-align:left;font-family:var(--font-body);vertical-align:top;line-height:1.45}
+.atable.optab td:first-child{white-space:nowrap;font-weight:600}
 
 /* ---------- load chart: red frames like a marked-up paper chart ---------- */
 .lc td.col-on{box-shadow:inset 2px 0 0 var(--bad),inset -2px 0 0 var(--bad)}
@@ -951,18 +979,51 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
     <section class="card" id="sec-sling" aria-labelledby="h-sling">
       <header class="card-head"><span class="num">04</span><h2 id="h-sling">สลิงและ Shackle</h2><span class="status" data-status="sling"></span></header>
       <div class="fields">
+        <div class="field"><label for="f-stype">ประเภทสลิง</label>
+          <select id="f-stype" data-k="slingType"><option value="wire">สลิงลวด (Wire rope)</option><option value="web">สลิงผ้าแบน โพลีเอสเตอร์ (Webbing)</option><option value="round">สลิงกลม โพลีเอสเตอร์ (Round sling)</option><option value="chain">โซ่ยก (Chain sling)</option><option value="mesh">ตาข่ายโลหะ (Metal-mesh)</option></select>
+        </div>
         <div class="field"><span class="lbl" id="l-legs">จำนวนสลิงที่คล้องตะขอ</span>
           <div class="seg" data-k="legs" data-num="1" role="group" aria-labelledby="l-legs"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button></div>
         </div>
         <div class="field"><span class="lbl" id="l-hitch">รูปแบบการผูก</span>
           <div class="seg" data-k="hitch" role="group" aria-labelledby="l-hitch"><button type="button" data-v="vertical">ตรง</button><button type="button" data-v="choker">รัดคอ</button><button type="button" data-v="basket">Basket</button></div>
         </div>
-        <div class="field"><label for="f-stype">ประเภทสลิง</label>
-          <select id="f-stype" data-k="slingType"><option value="wire">Wire rope sling</option><option value="web">Synthetic web sling</option><option value="round">Round sling</option><option value="chain">Steel chain sling</option><option value="mesh">Metal-mesh sling</option></select>
+        <!-- wire rope: option A / B -->
+        <div class="field full" data-sl="wire"><span class="lbl" id="l-wsrc">ข้อมูลพิกัดสลิงลวด</span>
+          <div class="seg srcseg" data-k="wSrc" role="group" aria-labelledby="l-wsrc">
+            <button type="button" data-v="A"><b>A · มีข้อมูลผู้ผลิต</b><small>ป้ายหรือใบเซอร์บอกพิกัด</small></button>
+            <button type="button" data-v="B"><b>B · ไม่ทราบข้อมูล</b><small>ใช้ EN 13414-1 ค่าต่ำสุด</small></button>
+            <button type="button" data-v="none"><b>ไม่มีป้าย</b><small>ห้ามใช้</small></button>
+          </div>
         </div>
-        <div class="field"><label for="f-ssize">ขนาดสลิง</label><input type="text" id="f-ssize" data-k="slingSize" placeholder="เช่น Ø 22 mm"></div>
+        <div class="field" data-sl="wire"><label for="f-wdia">ขนาดลวด Ø</label><div class="input"><input type="number" id="f-wdia" data-k="wDia" inputmode="decimal" step="1" min="0"><span class="unit">mm</span></div></div>
+        <div class="field" data-sl="wA"><span class="lbl" id="l-wby">ใช้พิกัดจาก</span>
+          <div class="seg" data-k="wBy" role="group" aria-labelledby="l-wby"><button type="button" data-v="tag">ป้ายสลิง (WLL)</button><button type="button" data-v="mbl">ใบเซอร์ (MBL)</button></div>
+        </div>
+        <div class="field" data-sl="wTag"><label for="f-wtag" id="l-wtag">WLL ตามป้าย (ยกตรง)</label><div class="input"><input type="number" id="f-wtag" data-k="wTag" inputmode="decimal" step="0.01" min="0"><span class="unit">ตัน</span></div><span class="hint" id="h-wtag"></span></div>
+        <div class="field" data-sl="wMbl"><label for="f-wmbl">MBL ตามใบเซอร์</label><div class="input"><input type="number" id="f-wmbl" data-k="wMbl" inputmode="decimal" step="0.1" min="0"><span class="unit">ตัน</span></div></div>
+        <div class="field" data-sl="wMbl"><span class="lbl" id="l-wmblof">MBL ในใบเซอร์เป็นของ</span>
+          <div class="seg" data-k="wMblOf" role="group" aria-labelledby="l-wmblof"><button type="button" data-v="rope">เส้นลวดเปล่า</button><button type="button" data-v="sling">สลิงสำเร็จ</button></div>
+          <span class="hint">เส้นลวด: × 0.9 (หักผลปลอกอัด) ÷ 5 · สลิงสำเร็จ: ÷ 5</span>
+        </div>
+        <!-- polyester webbing / round sling: colour code -->
+        <div class="field full" data-sl="syn"><span class="lbl" id="l-syncol">สีสลิง = พิกัดยกตรง (EN 1492)</span>
+          <div class="seg colors" data-k="synColor" role="group" aria-labelledby="l-syncol">
+            <button type="button" data-v="violet"><i style="background:#7B4FC8"></i>ม่วง<b>1 t</b></button>
+            <button type="button" data-v="green"><i style="background:#2E9B4E"></i>เขียว<b>2 t</b></button>
+            <button type="button" data-v="yellow"><i style="background:#F2C318"></i>เหลือง<b>3 t</b></button>
+            <button type="button" data-v="grey"><i style="background:#8C949C"></i>เทา<b>4 t</b></button>
+            <button type="button" data-v="red"><i style="background:#D33A2C"></i>แดง<b>5 t</b></button>
+            <button type="button" data-v="brown"><i style="background:#8B5A2B"></i>น้ำตาล<b>6 t</b></button>
+            <button type="button" data-v="blue"><i style="background:#2B5BC6"></i>น้ำเงิน<b>8 t</b></button>
+            <button type="button" data-v="orange"><i style="background:#F08A24"></i>ส้ม<b>10 t+</b></button>
+            <button type="button" data-v="none" class="no"><i></i>ไม่มีป้าย<b>ห้ามใช้</b></button>
+          </div>
+        </div>
+        <div class="field" data-sl="synTag"><label for="f-syntag">WLL ตามป้าย (สีส้ม)</label><div class="input"><input type="number" id="f-syntag" data-k="synTag" inputmode="decimal" step="0.1" min="0"><span class="unit">ตัน</span></div></div>
+        <div class="field" data-sl="size"><label for="f-ssize" id="l-ssize">ขนาด / รายละเอียดสลิง</label><input type="text" id="f-ssize" data-k="slingSize" placeholder="เช่น กว้าง 90 mm"></div>
         <div class="field"><label for="f-slen">ความยาวสลิง</label><div class="input"><input type="number" id="f-slen" data-k="slingLen" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
-        <div class="field"><label for="f-wll">พิกัดสลิงต่อเส้น (WLL)</label><div class="input"><input type="number" id="f-wll" data-k="wll" inputmode="decimal" step="0.1" min="0"><span class="unit">ตัน</span></div><span class="hint">ตามป้ายสลิง และรูปแบบการผูก</span></div>
+        <div class="field" data-sl="manual"><label for="f-wll">พิกัดสลิงต่อเส้น (WLL)</label><div class="input"><input type="number" id="f-wll" data-k="wll" inputmode="decimal" step="0.1" min="0"><span class="unit">ตัน</span></div><span class="hint" id="h-wll">ตามป้ายสลิง และรูปแบบการผูก</span></div>
         <div class="field" data-only="overhead"><label for="f-spread">ระยะห่างระหว่างจุดยกบนชิ้นงาน</label><div class="input"><input type="number" id="f-spread" data-k="spread" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
         <div class="field full"><label for="f-sang">มุมสลิงวัดจากแนวนอน</label>
           <div class="range-row">
@@ -980,6 +1041,7 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
         <div class="ro"><span class="k">ขาที่คิดว่ารับน้ำหนัก</span><span class="v" id="o-legs">—</span><span class="n" id="o-legs-n"></span></div>
         <div class="ro"><span class="k">ตัวคูณมุม (1 / sin θ)</span><span class="v" id="o-factor">—</span><span class="n">ยิ่งมุมต่ำ ตัวคูณยิ่งสูง</span></div>
         <div class="ro hero"><span class="k">แรงตึงต่อขา</span><span class="v" id="o-tension">—</span><span class="n" id="o-tension-n"></span></div>
+        <div class="ro" id="ro-wll"><span class="k">พิกัดสลิงต่อเส้น (WLL)</span><span class="v" id="o-wll">—</span><span class="n" id="o-wll-n"></span></div>
       </div>
       <div class="meter-row">
         <div class="meter-label"><span>แรงตึงเทียบพิกัดสลิง</span><span class="mono" id="m-sling-l">—</span></div>
@@ -1255,8 +1317,81 @@ const SIGS = [
 ];
 const PINS = ["1/2","5/8","3/4","7/8","1","1-1/8","1-1/4","1-3/8","1-1/2","1-5/8","2","2-1/4","2-3/4","3-1/4"];
 const OH_TYPES = {sg:"Overhead crane คานเดี่ยว", dg:"Overhead crane คานคู่", gantry:"Gantry crane", jib:"Jib crane", mono:"Monorail hoist"};
-const SLING_TYPES = {wire:"Wire rope sling", web:"Synthetic web sling", round:"Round sling", chain:"Steel chain sling", mesh:"Metal-mesh sling"};
+const SLING_TYPES = {wire:"สลิงลวด (Wire rope)", web:"สลิงผ้าแบน โพลีเอสเตอร์ (Webbing)", round:"สลิงกลม โพลีเอสเตอร์ (Round sling)", chain:"โซ่ยก (Chain sling)", mesh:"ตาข่ายโลหะ (Metal-mesh)"};
 const HITCH = {vertical:"ตรง (Vertical)", choker:"รัดคอ (Choker)", basket:"Basket"};
+/* ---- Sling rating (WLL per sling for the hitch used) ---- */
+// Hitch factors on the straight-lift WLL: wire rope (LEEA uniform-load method) and polyester webbing / round slings (EN 1492) use the same values.
+const HITCH_F = {vertical:1, choker:0.8, basket:2};
+// EN 13414-1, fibre-core rope 6x19 / 6x36, grade 1770, ferrule-secured eyes: the lowest rating of common slings, used when the maker is unknown.
+const EN_WIRE = {K:0.33, Rr:1770, KT:0.9, Zp:5, g:9.81, dMin:8, dMax:60};
+const floor2 = v => Math.floor(v*100 + 1e-7)/100;
+const enWire = d => floor2(EN_WIRE.K*d*d*EN_WIRE.Rr/1000*EN_WIRE.KT/(EN_WIRE.Zp*EN_WIRE.g));
+const EN_WIRE_SIZES = [8,9,10,11,12,13,14,16,18,19,20,22,24,25,26,28,30,32,36,40];
+// EN 1492 colour code = straight-lift WLL. Orange is 10 t and up, so its WLL comes from the tag.
+const SYN_COLORS = [["violet","ม่วง","#7B4FC8",1],["green","เขียว","#2E9B4E",2],["yellow","เหลือง","#F2C318",3],["grey","เทา","#8C949C",4],["red","แดง","#D33A2C",5],["brown","น้ำตาล","#8B5A2B",6],["blue","น้ำเงิน","#2B5BC6",8],["orange","ส้ม","#F08A24",null]];
+const fmtD = d => Number.isInteger(d) ? String(d) : d.toFixed(1);
+function slingRating(s){
+  const t = s.slingType, hk = HITCH[s.hitch] ? s.hitch : "vertical";
+  const o = {mode:"manual", type:t, hitch:hk, hf:HITCH_F[hk], base:null, wll:0, err:"", warn:"", need:"", opt:"", src:"", calc:"", legacy:false};
+  const isSyn = t==="web" || t==="round";
+  if(t==="wire" && s.wSrc==="none" || isSyn && s.synColor==="none"){
+    o.mode = "none"; o.opt = "ไม่มีป้าย"; o.err = "สลิงไม่มีป้ายหรืออ่านป้ายไม่ได้ ห้ามใช้ ให้เปลี่ยนเส้นที่มีป้ายระบุพิกัด"; return o;
+  }
+  if(t==="wire" && s.wSrc==="A"){
+    o.mode = "A"; o.opt = "Option A มีข้อมูลผู้ผลิต";
+    if(s.wBy==="mbl"){
+      const m = num(s.wMbl), rope = s.wMblOf!=="sling";
+      if(m>0){ o.base = floor2(rope ? m*0.9/5 : m/5); o.src = rope ? "MBL เส้นลวดเปล่า" : "MBL สลิงสำเร็จ"; o.calc = rope ? `${f2(m)} × 0.9 ÷ 5 = ${f2(o.base)} t` : `${f2(m)} ÷ 5 = ${f2(o.base)} t`; }
+      else o.need = "กรอก MBL ตามใบเซอร์";
+    } else {
+      const tg = num(s.wTag);
+      if(tg>0){ o.base = tg; o.src = "WLL ตามป้าย"; o.calc = `${f2(tg)} t`; } else o.need = "กรอก WLL ตามป้ายสลิง";
+    }
+  } else if(t==="wire" && s.wSrc==="B"){
+    o.mode = "B"; o.opt = "Option B ไม่ทราบข้อมูลผู้ผลิต";
+    const d = num(s.wDia);
+    if(!(d>0)) o.need = "กรอกขนาดลวด Ø (mm)";
+    else if(d<EN_WIRE.dMin || d>EN_WIRE.dMax){ o.err = `EN 13414-1 ใช้กับลวด Ø 8–60 mm (กรอก ${fmtD(d)} mm)`; o.dErr = true; }
+    else {
+      const en = enWire(d), tg = num(s.wTag); o.en = en; o.d = d;
+      o.base = tg>0 ? Math.min(en, tg) : en;
+      o.src = `EN 13414-1 แกนเชือก 1770 Ø ${fmtD(d)} mm`;
+      o.calc = `0.33 × ${fmtD(d)}² × 1,770 ÷ 1,000 × 0.9 ÷ (5 × 9.81) = ${f2(en)} t` + (tg>0 ? (tg<en ? ` · ป้าย ${f2(tg)} t ต่ำกว่า ใช้ค่าป้าย` : ` · ป้าย ${f2(tg)} t ใช้ค่า EN ที่ต่ำกว่า`) : "");
+    }
+  } else if(isSyn && SYN_COLORS.some(c=>c[0]===s.synColor)){
+    const c = SYN_COLORS.find(x=>x[0]===s.synColor);
+    o.mode = "color"; o.color = c; o.opt = `สี${c[1]} (EN ${t==="web"?"1492-1":"1492-2"})`;
+    if(c[3]!=null){ o.base = c[3]; o.src = `สี${c[1]}`; o.calc = `${c[3]} t`; }
+    else {
+      const tg = num(s.synTag);
+      if(tg>0){ o.base = tg; o.src = "สีส้ม ตามป้าย"; o.calc = `${f2(tg)} t`; if(tg<10) o.warn = "สีส้มคือพิกัด 10 ตันขึ้นไป ตรวจป้ายอีกครั้ง"; }
+      else o.need = "กรอก WLL ตามป้าย (สีส้ม 10 ตันขึ้นไป)";
+    }
+  } else if((t==="wire" || isSyn) && !has(s.wll)){
+    o.mode = "unset"; o.need = t==="wire" ? "เลือกข้อมูลสลิง A หรือ B" : "เลือกสีสลิง";
+  }
+  if(o.mode==="manual"){
+    o.hf = 1; o.legacy = t==="wire" || isSyn;
+    o.wll = num(s.wll); o.opt = "กรอกพิกัดเอง"; o.src = "WLL ตามรูปแบบการผูก"; o.calc = o.wll>0 ? `${f2(o.wll)} t` : "";
+    if(!(o.wll>0)) o.need = "กรอกพิกัดสลิง (WLL)";
+    return o;
+  }
+  if(o.base>0) o.wll = floor2(o.base*o.hf);
+  return o;
+}
+const HITCH_SHORT = {vertical:"ตรง", choker:"รัดคอ", basket:"Basket"};
+function slingSrcText(sr, s){
+  if(sr.mode==="none") return "ไม่มีป้าย ห้ามใช้";
+  if(sr.mode==="manual") return "กรอกเองตามรูปแบบการผูก";
+  if(sr.mode==="unset") return "—";
+  if(sr.mode==="A") return `${sr.opt} · ${s.wBy==="mbl" ? "ใบเซอร์ (MBL)" : "ป้าย (WLL)"}`;
+  if(sr.mode==="B") return `${sr.opt} · EN 13414-1`;
+  return sr.color[3]!=null ? `สี${sr.color[1]} ${sr.color[3]} t (EN ${sr.type==="web"?"1492-1":"1492-2"})` : `สีส้ม ตามป้าย (EN ${sr.type==="web"?"1492-1":"1492-2"})`;
+}
+function slingSizeText(s){
+  if(s.slingType==="wire" && num(s.wDia)>0) return `Ø ${fmtD(num(s.wDia))} mm` + (has(s.slingSize) ? ` ${s.slingSize}` : "");
+  return s.slingSize || "—";
+}
 const WSRC = {nameplate:"Nameplate", drawing:"Drawing", calc:"คำนวณ", weighed:"ชั่งจริง"};
 
 function todayISO(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
@@ -1269,6 +1404,8 @@ const BASE = {
   ohType:"dg", hoist:"main", swlCrane:"", swlHoist:"", span:"", hookH:"", obstH:"", clearReq:"0.5", loadHt:"", outdoor:false,
   craneW:"", boom:"", radiusPick:"", radiusSet:"", capMode:"chart", capRear:"", capFront:"", capSide:"",
   legs:2, hitch:"vertical", slingType:"wire", slingSize:"", slingLen:"", wll:"", spread:"", slingAng:"60", pinSize:"", shackleCap:"",
+  // sling rating source. "" = plan made before this option existed: WLL typed by hand (kept so old plans and their signatures stay the same)
+  wSrc:"", wBy:"", wTag:"", wMbl:"", wMblOf:"", wDia:"", synColor:"", synTag:"",
   outMode:"auto", outManual:"", padW:"", padL:"", ground:"", wind:"", windLim:"9.8",
   crit:{overPP:false,tandem:false,poles:false,travel:false,travelHaz:false},
   powerNear:false, kV:"", powerDist:"",
@@ -1290,7 +1427,7 @@ const EXAMPLE = mk({
   cond:"used", wsrc:"nameplate", loadW:"10200", ballW:"0", hookW:"450", beamW:"0", rigW:"350", allowW:"300", otherW:"0",
   craneName:"ปั้นจั่นเคลื่อนที่ 50 ตัน (Load chart สาธิต)", craneId:"MC-050", inspExp:"2027-01-15",
   craneW:"36000", boom:"24", radiusPick:"7.2", radiusSet:"8.6", capMode:"chart",
-  legs:4, hitch:"vertical", slingType:"wire", slingSize:"Ø 22 mm", slingLen:"4.0", wll:"8", slingAng:"60", pinSize:"1-1/8", shackleCap:"9.5",
+  legs:4, hitch:"vertical", slingType:"wire", wSrc:"A", wBy:"tag", wTag:"8", wDia:"26", slingLen:"4.0", slingAng:"60", pinSize:"1-1/8", shackleCap:"9.5",
   outMode:"auto", padW:"1.5", padL:"1.5", ground:"20", wind:"6.2", windLim:"9.8",
   crit:{overPP:true,tandem:false,poles:false,travel:false,travelHaz:false},
   cl:{c1:"y",c2:"y",c3:"y",c4:"y",c5:"y",c6:"y",c7:"",c8:"y",c9:"y",c10:"y",c11:"y",c12:"y",c13:"y",c14:"y",c15:"na",c16:"y",c17:"y",c18:"y",c19:"",c20:"y",c21:"y",c22:"y",c23:"y",c24:""},
@@ -1307,7 +1444,7 @@ const EXAMPLE_OH = mk({
   cond:"used", wsrc:"nameplate", loadW:"5200", beamW:"600", rigW:"250", allowW:"0", otherW:"0",
   craneName:"Overhead crane 10 ตัน ช่องเครนที่ 2", craneId:"OHC-02", inspExp:"2027-03-31",
   ohType:"dg", hoist:"main", swlCrane:"10000", swlHoist:"10000", span:"18", hookH:"8.5", obstH:"2.4", clearReq:"0.5", loadHt:"1.2", outdoor:false,
-  legs:2, hitch:"vertical", slingType:"wire", slingSize:"Ø 16 mm", slingLen:"2.0", wll:"5", spread:"1.6", slingAng:"60", pinSize:"7/8", shackleCap:"6.5",
+  legs:2, hitch:"vertical", slingType:"wire", wSrc:"B", wDia:"20", slingLen:"2.0", spread:"1.6", slingAng:"60", pinSize:"7/8", shackleCap:"6.5",
   wind:"", windLim:"",
   cl:{c1:"na",c2:"na",c3:"na",c4:"y",c5:"y",c6:"y",c7:"y",c8:"na",c9:"na",c10:"y",c11:"y",c12:"y",c13:"y",c14:"y",c15:"y",c16:"y",c17:"y",c18:"y",c19:"na",c20:"y",c21:"y",c22:"",c23:"",c24:"y",o1:"y",o2:"y"},
   sigs:{r1:{name:"ณัฐพล สายทอง",img:null,at:null,demo:true}, r2:{name:"",img:null,at:null}, nw:{name:"",img:null,at:null}}
@@ -1322,7 +1459,7 @@ const EXAMPLE_BT = mk({
   cond:"new", wsrc:"nameplate", loadW:"1450", ballW:"0", hookW:"40", beamW:"0", rigW:"60", allowW:"0", otherW:"0",
   craneName:"Boom truck 5 ตัน บูม 5 ท่อน (ตัวอย่าง)", craneId:"BT-05", inspExp:"2027-02-28",
   craneW:"14500", boom:"10.6", radiusPick:"4.5", radiusSet:"6.0", capMode:"manual", capRear:"2400", capFront:"", capSide:"2400",
-  legs:2, hitch:"vertical", slingType:"web", slingSize:"Web sling สีเหลือง 3 t", slingLen:"2.0", wll:"3", slingAng:"60", pinSize:"5/8", shackleCap:"3.25",
+  legs:2, hitch:"vertical", slingType:"web", synColor:"yellow", slingSize:"กว้าง 90 mm", slingLen:"2.0", slingAng:"60", pinSize:"5/8", shackleCap:"3.25",
   outMode:"auto", padW:"1.0", padL:"1.0", ground:"15", wind:"4.5", windLim:"9.0",
   cl:{c1:"y",c2:"y",c3:"y",c4:"y",c5:"y",c6:"y",c7:"",c8:"y",c9:"na",c10:"y",c11:"y",c12:"y",c13:"y",c14:"na",c15:"y",c16:"y",c17:"y",c18:"y",c19:"na",c20:"y",c21:"y",c22:"y",c23:"y",c24:"",b1:"y",b2:"y",b3:"y",b4:""},
   sigs:{r1:{name:"ธีรพงษ์ ศรีสุข",img:null,at:null,demo:true}, r2:{name:"วิชัย แก้วมณี",img:null,at:null}, nw:{name:"",img:null,at:null}}
@@ -1357,7 +1494,7 @@ function nextDocNo(){
 }
 function blankPlan(type){
   type = ["mobile","overhead","boomtruck"].includes(type) ? type : "mobile";
-  const p = mk({craneType:type, date:todayISO(), docNo:nextDocNo()});
+  const p = mk({craneType:type, date:todayISO(), docNo:nextDocNo(), wSrc:"B"});
   if(type==="overhead") p.windLim = "";
   if(type==="boomtruck") p.capMode = "manual";
   return p;
@@ -1504,7 +1641,7 @@ function compute(s){
   r.factor = r.sAng>0 ? 1/Math.sin(Math.min(r.sAng,90)*Math.PI/180) : null;
   r.slingLoad = r.loadW + r.allowW + r.otherW + r.beamW;          // kg
   r.tension = (r.factor && r.slingLoad>0) ? r.slingLoad/1000*r.factor/r.legsEff : null; // t
-  r.wll = num(s.wll);
+  r.sr = slingRating(s); r.wll = r.sr.wll;
   r.slingPct = (r.wll>0 && r.tension!=null) ? r.tension/r.wll*100 : null;
   r.shCap = num(s.shackleCap);
 
@@ -1567,10 +1704,12 @@ function compute(s){
   }
   {
     let tone, meta, val="—";
-    if(r.tension==null){ tone="idle"; meta="รอน้ำหนักชิ้นงานและมุมสลิง"; }
-    else if(!(r.wll>0)){ tone="idle"; meta="กรอกพิกัดสลิง (WLL)"; val=f2(r.tension)+" t"; }
-    else { val=r.slingPct.toFixed(0)+"%"; meta=`${f2(r.tension)} จาก ${f1(r.wll)} ตันต่อเส้น`;
-      tone = r.slingPct>100 ? "bad" : r.slingPct>90 ? "warn" : "ok"; if(r.slingPct>100) meta="แรงตึงเกินพิกัดสลิง "+meta; }
+    if(r.sr.err){ tone="bad"; meta=r.sr.err; val = r.sr.mode==="none" ? "ห้ามใช้" : "—"; }
+    else if(r.tension==null){ tone="idle"; meta="รอน้ำหนักชิ้นงานและมุมสลิง"; }
+    else if(!(r.wll>0)){ tone="idle"; meta=r.sr.need||"กรอกพิกัดสลิง (WLL)"; val=f2(r.tension)+" t"; }
+    else { val=r.slingPct.toFixed(0)+"%"; meta=`${f2(r.tension)} จาก ${f2(r.wll)} ตันต่อเส้น`;
+      tone = r.slingPct>100 ? "bad" : r.slingPct>90 ? "warn" : "ok"; if(r.slingPct>100) meta="แรงตึงเกินพิกัดสลิง "+meta;
+      if(tone==="ok" && r.sr.warn){ tone="warn"; meta=r.sr.warn+" · "+meta; } }
     C.push({id:"sling", label:"แรงตึงสลิง", val, meta, tone});
   }
   {
@@ -2158,6 +2297,7 @@ function render(){
   $("#o-tension-n").textContent = r.slingLoad>0 ? `น้ำหนักที่สลิงรับ ${kg(r.slingLoad)} kg (${kg(r.tension*1000)} kg ต่อเส้น)` : "";
   setMeter("m-sling", r.slingPct, ck("sling").tone, r.slingPct!=null ? `${r.slingPct.toFixed(0)}% ของ WLL` : "—");
   setStatus("sling", worst(ck("sling").tone, ck("angle").tone, ck("shackle").tone));
+  renderSlingFields(r, s);
   renderSlingRef(r, s);
 
   // 05
@@ -2498,10 +2638,12 @@ function sheetHTML(opt){
       <section class="sh-sec"><h3><span class="n">04</span>สลิงและ Shackle</h3>
         <div class="kv one">
           ${kv("ประเภท / รูปแบบการผูก", `${SLING_TYPES[s.slingType]||"—"} / ${HITCH[s.hitch]||"—"}`)}
+          ${kv("ข้อมูลพิกัดสลิง", slingSrcText(r.sr, s))}
+          ${r.sr.base>0 && r.sr.mode!=="manual" ? kv("พิกัดยกตรงต่อเส้น", `${r.sr.src ? r.sr.src+": " : ""}${r.sr.calc}`) : ""}
           ${kv("จำนวนสลิง / คิดรับ", `${r.legs} / ${r.legsEff} เส้น`)}
-          ${kv("ขนาด / ความยาวสลิง", `${s.slingSize||"—"} / ${has(s.slingLen)?f1(num(s.slingLen))+" m":"—"}`)}
+          ${kv("ขนาด / ความยาวสลิง", `${slingSizeText(s)} / ${has(s.slingLen)?f1(num(s.slingLen))+" m":"—"}`)}
           ${kv("มุมสลิงจากแนวนอน", r.legs===1?"90°":(r.sAng>0?r.sAng.toFixed(0)+"°":"—"))}
-          ${kv("แรงตึงต่อเส้น / WLL", `${f2(r.tension)} / ${f1(r.wll)} t`)}
+          ${kv("แรงตึงต่อเส้น / WLL", `${f2(r.tension)} / ${f2(r.wll)} t`)}
           ${kv("Shackle หมุด / พิกัด", `${s.pinSize?s.pinSize+" in":"—"} / ${f1(r.shCap)} t`,"tot")}
         </div>
       </section>
@@ -2732,7 +2874,25 @@ function calcModel(r, s){
     load: {expr: sp.length ? sp.map(([k,v])=>`${k} ${kg(v)}`).join(" + ") : "—", val: r.slingLoad>0 ? `${kg(r.slingLoad)} kg` : "—"},
     factor: {expr: r.legs===1 ? "สลิงเส้นเดียวแนวดิ่ง (90°)" : `1 ÷ sin ${r.sAng>0?r.sAng.toFixed(0):"θ"}°`, val: r.factor ? r.factor.toFixed(3) : "—"},
     tension: {expr: r.tension!=null ? `(${kg(r.slingLoad)} ÷ 1,000) × ${r.factor.toFixed(3)} ÷ ${r.legsEff}` : "(น้ำหนักที่สลิงรับ ÷ 1,000) × ตัวคูณมุม ÷ จำนวนขาที่คิด", val: r.tension!=null ? `${f2(r.tension)} ตัน/ขา` : "—"},
-    wll: {expr: (r.tension!=null && r.wll>0) ? `${f2(r.tension)} ÷ ${f1(r.wll)} × 100` : "แรงตึงต่อขา ÷ WLL × 100", val: r.slingPct!=null ? `${r.slingPct.toFixed(0)}%` : "—"},
+    rating: (()=>{ const sr = r.sr, hfx = ` × ${HITCH_SHORT[sr.hitch]} ${sr.hf.toFixed(1)}`;
+      let expr;
+      if(sr.mode==="none") expr = "ไม่มีป้าย ห้ามใช้";
+      else if(sr.mode==="manual") expr = "กรอกตามป้ายและรูปแบบการผูกจากตารางผู้ผลิต";
+      else if(sr.mode==="unset" || !(sr.base>0)) expr = sr.need || sr.err || "—";
+      else if(sr.mode==="A") expr = `${sr.opt} · ${sr.src} ${sr.calc}${hfx}`;
+      else if(sr.mode==="B") expr = `${sr.opt} · ${sr.calc}${hfx}`;
+      else expr = `${sr.opt} = ${sr.calc}${hfx}`;
+      if(sr.err && sr.mode!=="none") expr = sr.err;
+      // short form for the PDF calculation page (the full working is in section 04)
+      let short = expr;
+      if(!sr.err && (sr.base>0 || sr.mode==="manual")){
+        if(sr.mode==="manual") short = "ตามป้าย / ตารางผู้ผลิต";
+        else if(sr.mode==="A") short = (s.wBy==="mbl" ? sr.calc.replace(/ t$/,"") : `ป้าย ${f2(sr.base)}`) + hfx;
+        else if(sr.mode==="B") short = `EN Ø ${fmtD(sr.d)} mm ${f2(sr.en)}${sr.base<sr.en?` → ป้าย ${f2(sr.base)}`:""}${hfx}`;
+        else short = `สี${sr.color[1]} ${f2(sr.base)}${hfx}`;
+      }
+      return {expr, short, val: sr.mode==="none" ? "ห้ามใช้" : r.wll>0 ? `${f2(r.wll)} ตัน/เส้น` : "—"}; })(),
+    wll: {expr: (r.tension!=null && r.wll>0) ? `${f2(r.tension)} ÷ ${f2(r.wll)} × 100` : "แรงตึงต่อขา ÷ WLL × 100", val: r.slingPct!=null ? `${r.slingPct.toFixed(0)}%` : "—"},
     shackle: {expr: (r.tension!=null && r.shCap>0) ? `${f2(r.tension)} ÷ ${f1(r.shCap)} × 100` : "แรงตึงต่อขา ÷ พิกัด Shackle × 100", val: (r.tension!=null && r.shCap>0) ? `${(r.tension/r.shCap*100).toFixed(0)}%` : "—"},
     legsNote: r.legs>2 ? `สลิง ${r.legs} เส้น คิดว่ารับจริง 2 เส้น` : r.legs===2 ? "สลิง 2 เส้น รับทั้ง 2 เส้น" : "สลิงเส้นเดียว"
   };
@@ -2771,7 +2931,7 @@ function calcPageHTML(r, s, miniHead, foot, pageNo){
     const rangeImg = showRange ? `<img class="rg" src="${"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(rangeSVG(r, PAL_PRINT, {px:true, w:340}))}" alt="">` : "";
     let tbl = "", tblNote = "";
     if(r.chart){
-      const t = chartTablePDF(r.chart, r.lk && r.lk.cap!=null ? r.lk : (r.lk||{}), showRange ? 20 : 30);
+      const t = chartTablePDF(r.chart, r.lk && r.lk.cap!=null ? r.lk : (r.lk||{}), showRange ? 17 : 30);
       tbl = t.html;
       tblNote = `${r.capMode==="chart" ? "Load chart สาธิต (ใช้สอนเท่านั้น)" : esc(r.chart.name)}${r.chart.note?" · "+esc(r.chart.note):""} · แสดงเป็น kg${t.cut?" · แสดงเฉพาะแถวรอบรัศมีที่ใช้":""} · กรอบแดง = ช่องบูมและแถวรัศมีที่ใช้อ่านพิกัด`;
     } else if(r.manual){
@@ -2788,7 +2948,7 @@ function calcPageHTML(r, s, miniHead, foot, pageNo){
   const sl = m.sling;
   const angRows = [90,60,45,30].map(a=>{ const f = 1/Math.sin(a*Math.PI/180); const on = r.legs>1 && Math.round(r.sAng)===a; return `<td class="${on?"on":""}${a<45?" low":""}">${a}° → ${f.toFixed(3)}</td>`; }).join("");
   const secC = `<section class="sh-sec"><h3><span class="n">C</span>แรงตึงสลิงและ Shackle<span class="r">${esc(sl.legsNote)}</span></h3>
-    <table class="sh-calc">${row("น้ำหนักที่สลิงรับ", sl.load)}${row("ตัวคูณมุม", sl.factor)}${row("แรงตึงต่อขา", sl.tension)}${row("เทียบพิกัดสลิง (WLL)", sl.wll)}${row("เทียบพิกัด Shackle", sl.shackle)}</table>
+    <table class="sh-calc">${row("น้ำหนักที่สลิงรับ", sl.load)}${row("ตัวคูณมุม", sl.factor)}${row("แรงตึงต่อขา", sl.tension)}${row("พิกัดสลิงต่อเส้น", {expr: sl.rating.short, val: sl.rating.val})}${row("เทียบพิกัดสลิง (WLL)", sl.wll)}${row("เทียบพิกัด Shackle", sl.shackle)}</table>
     <table class="sh-ang"><tr><td class="t">ตัวคูณมุม 1 ÷ sin θ (θ วัดจากแนวนอน)</td>${angRows}</tr></table></section>`;
   const secD = m.ground ? `<section class="sh-sec"><h3><span class="n">D</span>แรงกดบนพื้น</h3><table class="sh-calc">${row("แรงกดขาค้ำ", m.ground.react)}${row("แรงกดบนแผ่นรอง", m.ground.press)}${row("เทียบที่พื้นรับได้", m.ground.cmp)}</table></section>`
     : m.head ? `<section class="sh-sec"><h3><span class="n">D</span>ความสูงตะขอ</h3><table class="sh-calc">${row("ความสูงสลิง", m.head.slingH)}${row("ความสูงที่ต้องใช้", m.head.req)}${row("ระยะตะขอเหลือ", m.head.margin)}</table></section>` : "";
@@ -2807,9 +2967,9 @@ function calcPageHTML(r, s, miniHead, foot, pageNo){
 
 /* ================= Sling reference (section 04) ================= */
 const SLING_INFO = {
-  wire:{t:"Wire rope sling", th:"สลิงลวดเหล็ก", p:["แข็งแรง ทนการสึก เหมาะกับของหนัก","ต้องรองขอบคม ห้ามบิดหรือหักงอ (Kink)","ปลดทิ้งเมื่อลวดขาด เกลียวคลาย ยุบ หรือเป็นสนิมมาก"]},
-  web:{t:"Synthetic web sling", th:"สายผ้าแบน", p:["เบา นุ่ม ไม่ทำให้ผิวชิ้นงานเสีย","สีบอกพิกัด (EN 1492-1)","ห้ามใช้กับขอบคม ความร้อน หรือสารเคมีที่ไม่ทน"]},
-  round:{t:"Round sling", th:"สายกลม", p:["เส้นใยด้านในหุ้มปลอก ยืดหยุ่น พันชิ้นงานได้ดี","สีบอกพิกัด (EN 1492-2)","ปลอกขาดจนเห็นเส้นใยด้านใน ห้ามใช้"]},
+  wire:{t:"Wire rope sling", th:"สลิงลวด", p:["แข็งแรง ทนการสึก เหมาะกับของหนัก","ต้องรองขอบคม ห้ามบิดหรือหักงอ (Kink)","ปลดทิ้งเมื่อลวดขาด เกลียวคลาย ยุบ หรือเป็นสนิมมาก"]},
+  web:{t:"Webbing sling", th:"สลิงผ้าแบน โพลีเอสเตอร์", p:["เบา นุ่ม ไม่ทำให้ผิวชิ้นงานเสีย","สีบอกพิกัด (EN 1492-1)","ห้ามใช้กับขอบคม ความร้อน หรือสารเคมีที่ไม่ทน"]},
+  round:{t:"Round sling", th:"สลิงกลม โพลีเอสเตอร์", p:["เส้นใยด้านในหุ้มปลอก ยืดหยุ่น พันชิ้นงานได้ดี","สีบอกพิกัด (EN 1492-2)","ปลอกขาดจนเห็นเส้นใยด้านใน ห้ามใช้"]},
   chain:{t:"Steel chain sling", th:"โซ่ยก", p:["ทนความร้อนและการขูดขีด ปรับความยาวขาได้","ใช้โซ่สำหรับยกเท่านั้น เช่น เกรด 80 / 100","ปลดทิ้งเมื่อข้อโซ่ยืด สึก แตก หรือตะขอปากบาน"]},
   mesh:{t:"Metal-mesh sling", th:"ตาข่ายโลหะ", p:["ทนความร้อนและขอบคม","เหมาะกับของร้อนหรือผิวคม","ปลดทิ้งเมื่อลวดขาด ตาข่ายยุบ หรือข้อต่อเสียรูป"]}
 };
@@ -2841,11 +3001,10 @@ function angleArt(theta){
     <path d="M${hx+half-50} ${baseY}h60" stroke="#C92D2D" stroke-width="1" stroke-dasharray="3 3"/></svg>`;
 }
 const n1 = v => v.toFixed(1);
-const SWATCH = [["ม่วง","#7B4FC8",1],["เขียว","#2E9B4E",2],["เหลือง","#F2C318",3],["เทา","#8C949C",4],["แดง","#D33A2C",5],["น้ำตาล","#8B5A2B",6],["น้ำเงิน","#2B5BC6",8],["ส้ม","#F08A24","10+"]];
 let slingRefKey = "";
 function renderSlingRef(r, s){
   const box = $("#sling-ref-in"); if(!box) return;
-  const key = [s.slingType, s.hitch, r.legs, Math.round(r.sAng||0), r.slingLoad, r.legsEff, r.tension, r.wll].join("|");
+  const key = [s.slingType, s.hitch, r.legs, Math.round(r.sAng||0), r.slingLoad, r.legsEff, r.tension, r.wll, s.wSrc, s.wDia, s.synColor].join("|");
   if(key===slingRefKey) return; slingRefKey = key;
   const angs = [90,75,60,50,45,40,30];
   const cur = r.legs>1 && r.sAng>0 ? Math.round(r.sAng) : null;
@@ -2855,14 +3014,23 @@ function renderSlingRef(r, s){
   box.innerHTML = `
     <h4>ชนิดสลิง</h4>
     <div class="stypes">${Object.entries(SLING_INFO).map(([k,v])=>`<div class="stype" data-on="${s.slingType===k}">${s.slingType===k?`<span class="tag">ใช้ในแผนนี้</span>`:""}${slingArt(k)}<b>${v.t}<br><span style="font-weight:500">${v.th}</span></b><ul>${v.p.map(x=>`<li>${x}</li>`).join("")}</ul></div>`).join("")}</div>
-    <h4>สีบอกพิกัดสายผ้าแบนและสายกลม <span class="ref">EN 1492</span></h4>
-    <div class="swatches">${SWATCH.map(([n,c,t])=>`<div class="sw"><i style="background:${c}"></i><span>${n}</span><b style="margin-left:auto">${t} t</b></div>`).join("")}</div>
-    <p class="refnote">พิกัดในตารางสีคือการยกตรง (Vertical) ของสลิงเส้นเดียว ดูพิกัดจริงที่ป้าย (Tag) ทุกครั้ง ป้ายหายหรืออ่านไม่ได้ห้ามใช้</p>
+    <h4>สลิงลวด: เลือก Option ตามข้อมูลที่มี <span class="ref">EN 13414-1</span></h4>
+    <table class="atable optab"><thead><tr><th>Option</th><th>ใช้เมื่อ</th><th>พิกัดที่ใช้</th></tr></thead><tbody>
+      <tr data-on="${s.slingType==="wire" && s.wSrc==="A"}"><td>A มีข้อมูลผู้ผลิต</td><td>ป้ายหรือใบเซอร์บอกผู้ผลิต โครงสร้างลวด และเกรด</td><td>WLL บนป้าย หรือ MBL ในใบเซอร์ ÷ 5 (เส้นลวดเปล่า × 0.9 ก่อน)</td></tr>
+      <tr data-on="${s.slingType==="wire" && s.wSrc==="B"}"><td>B ไม่ทราบข้อมูล</td><td>ผู้รับเหมานำมาเอง ไม่รู้ยี่ห้อ แกน หรือเกรด</td><td>EN 13414-1 แกนเชือก เกรด 1770 (ค่าต่ำสุด) ถ้าป้ายมีพิกัดใช้ค่าที่ต่ำกว่า</td></tr>
+      <tr data-on="${s.slingType==="wire" && s.wSrc==="none"}" class="low"><td>ไม่มีป้าย</td><td>ระบุพิกัดไม่ได้</td><td>ห้ามใช้</td></tr>
+    </tbody></table>
+    <h4>Option B: พิกัดยกตรงต่อเส้น (ตัน) <span class="ref">EN 13414-1 แกนเชือก 1770</span></h4>
+    <div class="entiles">${(()=>{ const d = s.slingType==="wire" && s.wSrc==="B" ? num(s.wDia) : 0; const list = EN_WIRE_SIZES.slice(); if(d>=EN_WIRE.dMin && d<=EN_WIRE.dMax && !list.includes(d)){ list.push(d); list.sort((a,b)=>a-b); } return list.map(x=>`<div class="entile" data-on="${x===d}"><span>Ø ${fmtD(x)} mm</span><b>${f2(enWire(x))}</b></div>`).join(""); })()}</div>
+    <p class="refnote">WLL = 0.33 × d² × 1,770 ÷ 1,000 × 0.9 ÷ (5 × 9.81) ปัดลง 2 ตำแหน่ง (K แกนเชือก 0.33 · ปลอกอัด KT 0.9 · Safety factor 5) · ตารางในมาตรฐานปัดเป็นเลขกลมจึงอาจสูงกว่าเล็กน้อย · กรอบแดง = ขนาดที่ใช้ในแผนนี้</p>
+    <h4>สีบอกพิกัดสลิงผ้าแบนและสลิงกลม โพลีเอสเตอร์ <span class="ref">EN 1492</span></h4>
+    <div class="swatches">${SYN_COLORS.map(([k,n,c,t])=>`<div class="sw" data-on="${(s.slingType==="web"||s.slingType==="round") && s.synColor===k}"><i style="background:${c}"></i><span>${n}</span><b style="margin-left:auto">${t==null?"10+":t} t</b></div>`).join("")}</div>
+    <p class="refnote">พิกัดตามสีคือการยกตรงของสลิงเส้นเดียว ดูพิกัดจริงที่ป้าย (Tag) ทุกครั้ง ป้ายหายหรืออ่านไม่ได้ห้ามใช้ · สีของป้ายบอกวัสดุ: น้ำเงิน = โพลีเอสเตอร์ (PES) · เขียว = โพลีเอไมด์ (PA) · น้ำตาล = โพลีโพรพิลีน (PP)</p>
     <h4>รูปแบบการผูกและตัวคูณพิกัด <span class="ref">EN 1492</span></h4>
     <div class="hitches">
-      ${[["vertical","ตรง (Vertical)","× 1.0","พิกัดเท่าป้าย"],["choker","รัดคอ (Choker)","× 0.8","พิกัดลดลง 20%"],["basket","Basket ขาตั้งตรง","× 2.0","สองขารับร่วมกัน"],["basket2","Basket ขาทำมุม","× 1.4","มุมจากแนวดิ่งไม่เกิน 45°"]].map(([k,t,m,d])=>{ const on = s.hitch===k || (k==="basket2" && s.hitch==="basket"); return `<div class="hitch" data-on="${on}">${on?`<span class="tag">ใช้ในแผนนี้</span>`:""}${hitchArt(k)}<b>${t}</b><span class="m">${m}</span><span>${d}</span></div>`; }).join("")}
+      ${[["vertical","ตรง (Vertical)","× 1.0","พิกัดเท่าป้าย"],["choker","รัดคอ (Choker)","× 0.8","พิกัดลดลง 20%"],["basket","Basket ขาตั้งตรง","× 2.0","สองขารับร่วมกัน"],["basket2","Basket ขาทำมุม","× 1.4","มุมจากแนวดิ่งไม่เกิน 45°"]].map(([k,t,m,d])=>{ const on = s.hitch===k; return `<div class="hitch" data-on="${on}">${on?`<span class="tag">ใช้ในแผนนี้</span>`:""}${hitchArt(k)}<b>${t}</b><span class="m">${m}</span><span>${d}</span></div>`; }).join("")}
     </div>
-    <p class="refnote">ตัวคูณเทียบกับพิกัดยกตรงบนป้าย ตามมาตรฐานสลิงผ้าและสายกลม (EN 1492) สลิงลวดและโซ่ให้ใช้ตารางของผู้ผลิต ช่อง WLL ในโปรแกรมให้กรอกพิกัดตามรูปแบบการผูกที่ใช้จริง</p>
+    <p class="refnote">ระบบคูณตัวคูณนี้กับพิกัดยกตรงให้เอง ทั้งสลิงลวด (LEEA) และสลิงผ้า / สลิงกลม (EN 1492) · มุมของสลิงคิดแยกในแรงตึงต่อขา จึงใช้ Basket ขาตั้งตรง × 2.0 · โซ่และตาข่ายโลหะให้กรอก WLL ตามรูปแบบการผูกจากตารางของผู้ผลิต</p>
     <h4>มุมสลิงกับแรงตึงต่อขา <span class="ref">S-320 ≥ 45°</span></h4>
     <div class="angle-wrap">${angleArt(cur||60)}
       <table class="atable"><thead><tr><th>มุม θ จากแนวนอน</th><th>ตัวคูณ 1 ÷ sin θ</th><th>แรงต่อขา*</th></tr></thead><tbody>
@@ -2870,7 +3038,7 @@ function renderSlingRef(r, s){
       </tbody></table>
     </div>
     <p class="refnote">* ตัวอย่างของหนัก 1,000 kg ยกด้วยสลิง 2 ขา · มุมยิ่งต่ำ แรงต่อขายิ่งสูง ต่ำกว่า 45° ต้องแนบการคำนวณแรงรับ (S-320)</p>
-    <div class="formula">แรงตึงต่อขา = (น้ำหนักที่สลิงรับ ÷ 1,000) × (1 ÷ sin θ) ÷ จำนวนขาที่คิด<br>= ${esc(sl.tension.expr)} = <b>${esc(sl.tension.val)}</b><br>เทียบพิกัดสลิง: ${esc(sl.wll.expr)} = <b>${esc(sl.wll.val)}</b> · ${esc(sl.legsNote)}</div>`;
+    <div class="formula">แรงตึงต่อขา = (น้ำหนักที่สลิงรับ ÷ 1,000) × (1 ÷ sin θ) ÷ จำนวนขาที่คิด<br>= ${esc(sl.tension.expr)} = <b>${esc(sl.tension.val)}</b><br>พิกัดสลิงต่อเส้น: ${esc(sl.rating.expr)} = <b>${esc(sl.rating.val)}</b><br>เทียบพิกัดสลิง: ${esc(sl.wll.expr)} = <b>${esc(sl.wll.val)}</b> · ${esc(sl.legsNote)}</div>`;
 }
 
 /* ================= Red frame on fields that break a legal / standard limit ================= */
@@ -2880,6 +3048,49 @@ function markField(key, state, msg){
   let m = f.querySelector(":scope > .fmsg");
   if(!m){ m = document.createElement("span"); m.className = "fmsg"; m.setAttribute("aria-live","polite"); f.appendChild(m); }
   m.textContent = msg || ""; m.hidden = !msg;
+}
+/* Section 04: which sling inputs to show, the WLL readout, and red frames */
+function renderSlingFields(r, s){
+  const sr = r.sr, t = s.slingType, isW = t==="wire", isSyn = t==="web" || t==="round";
+  const A = isW && s.wSrc==="A", B = isW && s.wSrc==="B", byM = A && s.wBy==="mbl";
+  const show = (k, on) => $$(`[data-sl="${k}"]`).forEach(e=>{ e.hidden = !on; });
+  show("wire", isW); show("wA", A); show("wTag", (A && !byM) || B); show("wMbl", byM);
+  show("syn", isSyn); show("synTag", isSyn && s.synColor==="orange");
+  show("size", !isW); show("manual", sr.mode==="manual");
+  $$('[data-k="wBy"] button').forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===(s.wBy==="mbl"?"mbl":"tag"))));
+  $$('[data-k="wMblOf"] button').forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===(s.wMblOf==="sling"?"sling":"rope"))));
+  $("#l-wtag").textContent = B ? "WLL ตามป้าย (ถ้ามี)" : "WLL ตามป้าย (ยกตรง)";
+  $("#h-wtag").textContent = B ? "ถ้าป้ายบอกพิกัด ระบบใช้ค่าที่ต่ำกว่าระหว่างป้ายกับ EN" : "พิกัดยกตรงของสลิงเส้นเดียว";
+  $("#l-ssize").textContent = isSyn ? "ความกว้าง / รายละเอียดสลิง" : "ขนาด / รายละเอียดสลิง";
+  $("#f-ssize").placeholder = isSyn ? "เช่น กว้าง 90 mm" : t==="chain" ? "เช่น โซ่ 10 mm เกรด 80" : "เช่น กว้าง 300 mm";
+  $("#h-wll").textContent = sr.legacy ? "แผนที่ทำก่อนมีตัวเลือกนี้ · เลือกข้อมูลสลิงด้านบน แล้วระบบจะคำนวณพิกัดให้" : "ตามป้ายสลิง และรูปแบบการผูก (จากตารางผู้ผลิต)";
+  // readout
+  const hfTxt = sr.hf!==1 ? ` × ${sr.hitch==="choker"?"รัดคอ":"Basket"} ${sr.hf}` : "";
+  let note = sr.need || "";
+  if(sr.err) note = sr.err;
+  else if(r.wll>0){
+    if(sr.mode==="manual") note = "กรอกเองตามรูปแบบการผูก";
+    else if(sr.mode==="A") note = (s.wBy==="mbl" ? "MBL "+sr.calc.replace(/ = .*$/,"") : `ป้าย ${f2(sr.base)} t`) + hfTxt;
+    else if(sr.mode==="B") note = `EN Ø ${fmtD(sr.d)} mm ${f2(sr.en)} t${sr.base<sr.en?` · ใช้ป้าย ${f2(sr.base)} t`:""}${hfTxt}`;
+    else note = `สี${sr.color[1]} ${f2(sr.base)} t${hfTxt}`;
+  }
+  $("#o-wll").innerHTML = sr.mode==="none" ? "ห้ามใช้" : r.wll>0 ? `${f2(r.wll)}<small>ตัน/เส้น</small>` : "—";
+  $("#o-wll-n").textContent = note;
+  const over = r.slingPct!=null && r.slingPct>100;
+  $("#ro-wll").dataset.tone = (sr.err || over) ? "bad" : sr.warn ? "warn" : "";
+  // red frame on the input that sets the rating
+  const key = sr.mode==="manual" ? "wll" : isW ? (sr.dErr ? "wDia" : "wSrc") : isSyn ? "synColor" : "wll";
+  let st = "", msg = "";
+  if(sr.err){ st = "bad"; msg = sr.err; }
+  else if(over){ st = "bad"; msg = `แรงตึงต่อขา ${f2(r.tension)} t เกินพิกัดสลิง ${f2(r.wll)} t ต่อเส้น (${r.slingPct.toFixed(0)}%) · ใช้สลิงใหญ่ขึ้น เพิ่มจำนวนเส้น หรือเพิ่มมุมสลิง`; }
+  else if(sr.warn){ st = "warn"; msg = sr.warn; }
+  else if(r.wll>0 && sr.mode!=="manual"){ st = "ok"; msg = `${sr.opt} · ใช้พิกัด ${f2(r.wll)} ตันต่อเส้น`; }
+  ["wSrc","wDia","synColor","wll"].forEach(k=>{ if(k!==key) markField(k, "", ""); });
+  markField(key, st, msg);
+  if(r.legs>1 && r.sAng>0 && r.sAng<45) markField("slingAng", "warn", "ต่ำกว่า 45° (S-320) ต้องแนบการคำนวณแรงรับ ซึ่งอยู่ในหน้าการคำนวณของ PDF");
+  else markField("slingAng", "", "");
+  if(r.shCap>0 && r.tension!=null && r.tension>r.shCap) markField("shackleCap", "bad", `แรงตึงต่อขา ${f2(r.tension)} t เกินพิกัด Shackle ${f2(r.shCap)} t`);
+  else markField("shackleCap", "", "");
 }
 function renderLegalMarks(r, s){
   const map = [["supervisor","supTrain"],["operator","opTrain"],["signalman","sigTrain"],["rigger","rigTrain"]];
@@ -2949,11 +3160,19 @@ const HELP = {
   capMode:{no:"3.12", src:"Load chart ของปั้นจั่นคันที่ใช้", how:"“Load chart สาธิต” ใช้สอนวิธีอ่านเท่านั้น · <b>งานจริง</b>ให้เลือก “จากคลัง load chart” ถ้าบันทึกรุ่นนั้นไว้แล้ว ระบบอ่านพิกัดให้ หรือเลือก “กรอกพิกัดเอง” แล้วอ่านจาก chart ของรุ่นนั้นมากรอก 3 ทิศ", ref:"เอกสารแนบ 1 A.e"},
   capRear:CAPDIR("ด้านหลังรถ (Over rear)"), capFront:CAPDIR("ด้านหน้ารถ (Over front)"), capSide:CAPDIR("ด้านข้างรถ (Over side)"),
   legs:{no:"4.3", src:"แผนการผูก (Rigging plan)", how:"จำนวนขาสลิงที่คล้องตะขอ · ระบบคิดว่ารับน้ำหนักจริงแค่ 2 ขาเมื่อมี 2 ขาขึ้นไป เพราะสลิงมักยาวไม่เท่ากัน"},
-  hitch:{no:"4.2", src:"แผนการผูก, ตารางพิกัดของผู้ผลิตสลิง", how:"รัดคอ (Choker) รับได้น้อยกว่าผูกตรง ส่วน Basket รับได้มากกว่า · พิกัด WLL ที่กรอกต้องตรงกับรูปแบบที่เลือก"},
-  slingType:{no:"4.1", src:"ป้าย (Tag) ที่สลิง", how:"เลือกตามชนิดจริง และแนบเอกสารผู้ผลิต · ตรวจสภาพสลิงตามเอกสารแนบ 3 ก่อนใช้", ref:"เอกสารแนบ 3"},
-  slingSize:{no:"4.4", src:"ป้ายที่สลิง หรือวัดด้วยเวอร์เนียร์", how:"Wire rope ใส่เส้นผ่านศูนย์กลาง (mm) · Web หรือ Round sling ใส่ความกว้างหรือสีตามพิกัด"},
+  hitch:{no:"4.2", src:"แผนการผูก (Rigging plan)", how:"เทียบกับยกตรง: รัดคอ (Choker) × 0.8 · Basket ขาตั้งตรง × 2.0 · ระบบคูณให้เองสำหรับสลิงลวดและสลิงโพลีเอสเตอร์ · โซ่และตาข่ายโลหะให้กรอก WLL ตามรูปแบบการผูกจากตารางผู้ผลิต"},
+  slingType:{no:"4.1", src:"ป้าย (Tag) ที่สลิง", how:"<b>สลิงลวด</b>: เลือกต่อว่า A มีข้อมูลผู้ผลิต หรือ B ไม่ทราบข้อมูล · <b>สลิงผ้าแบน / สลิงกลม โพลีเอสเตอร์</b>: เลือกสีตามตัวสลิง ระบบรู้พิกัดจากสี · <b>โซ่และตาข่ายโลหะ</b>: กรอก WLL เอง · ตรวจสภาพสลิงตามเอกสารแนบ 3 ก่อนใช้", ref:"เอกสารแนบ 3"},
+  wSrc:{no:"4.6", src:"ป้าย (Tag) และใบเซอร์ที่ผู้รับเหมานำมา", how:"<b>A มีข้อมูลผู้ผลิต</b>: ป้ายหรือใบเซอร์บอกผู้ผลิต โครงสร้างลวด (เช่น 6x37 IWRC) และเกรด ใช้พิกัดตามป้าย หรือ MBL ÷ 5 · <b>B ไม่ทราบข้อมูล</b>: ไม่รู้ยี่ห้อ แกน หรือเกรด ระบบใช้ EN 13414-1 แกนเชือก เกรด 1770 ซึ่งเป็นค่าต่ำสุดของสลิงทั่วไป (ต่ำกว่าตารางผู้ผลิตแบบ MBL ÷ 5 ราว 18%) · <b>ไม่มีป้าย</b>: ห้ามใช้", ref:"EN 13414-1"},
+  wDia:{no:"4.4", src:"ป้ายที่สลิง หรือวัดด้วยเวอร์เนียร์", how:"เส้นผ่านศูนย์กลางลวดเป็น mm วัดคร่อมสันเกลียว · Option B ใช้ขนาดนี้คำนวณพิกัดตาม EN 13414-1 ได้ตั้งแต่ Ø 8–60 mm"},
+  wBy:{no:"4.6", src:"ป้ายสลิง หรือใบรับรอง (Certificate) จากผู้ผลิต", how:"<b>ป้ายสลิง</b>: ใช้ WLL ยกตรงบนป้าย · <b>ใบเซอร์</b>: ใช้ค่า MBL (แรงดึงขาดต่ำสุด) ระบบหาร Safety factor 5 ให้"},
+  wTag:{no:"4.6", src:"ป้าย (Tag) ที่สลิง", how:"พิกัดยกตรง (Vertical) ของสลิงเส้นเดียว หน่วยตัน · ระบบคูณตัวคูณรูปแบบการผูกให้เอง · ใน Option B ถ้าป้ายมีพิกัด ระบบใช้ค่าที่ต่ำกว่าระหว่างป้ายกับ EN"},
+  wMbl:{no:"4.6", src:"ใบรับรองสลิงหรือลวดจากผู้ผลิต", how:"MBL (Minimum Breaking Load) หน่วยตัน · ระบบคิด WLL = MBL ÷ 5 ถ้าเป็น MBL ของเส้นลวดเปล่าจะคูณ 0.9 ก่อน เพื่อหักผลของปลอกอัด", ref:"EN 13414-1"},
+  wMblOf:{no:"4.6", src:"หัวข้อในใบเซอร์", how:"ใบเซอร์ของ<b>สลิงสำเร็จ</b> (ทดสอบทั้งเส้นพร้อมปลอก) ใช้ ÷ 5 · ใบเซอร์ของ<b>เส้นลวด</b> (Wire rope certificate) ใช้ × 0.9 ÷ 5 · ไม่แน่ใจให้เลือกเส้นลวดเปล่า"},
+  synColor:{no:"4.6", t:"สลิงโพลีเอสเตอร์", src:"สีของตัวสลิง และป้าย (Tag)", how:"สีตัวสลิงบอกพิกัดยกตรงตาม EN 1492: ม่วง 1 · เขียว 2 · เหลือง 3 · เทา 4 · แดง 5 · น้ำตาล 6 · น้ำเงิน 8 · ส้ม 10 ตันขึ้นไป (กรอกตามป้าย) · ตรวจให้ตรงกับป้ายทุกครั้ง ไม่มีป้ายห้ามใช้ · ห้ามใช้กับขอบคม ความร้อน หรือสารเคมีที่ไม่ทน", ref:"EN 1492-1 / EN 1492-2"},
+  synTag:{no:"4.6", src:"ป้าย (Tag) ที่สลิง", how:"สลิงสีส้มมีพิกัดตั้งแต่ 10 ตันขึ้นไป กรอกพิกัดยกตรงตามป้าย หน่วยตัน"},
+  slingSize:{no:"4.4", src:"ป้ายที่สลิง หรือวัดจริง", how:"สลิงผ้าใส่ความกว้าง เช่น กว้าง 90 mm · โซ่ใส่ขนาดและเกรด · สลิงลวดใช้ช่องขนาดลวด Ø แทน"},
   slingLen:{no:"4.5", src:"ป้ายที่สลิง หรือวัดจริง", how:"ความยาวต่อขา (m) ใช้หามุมสลิง"},
-  wll:{no:"4.6", src:"ป้าย (Tag) ที่สลิง, ใบรับรองจากผู้ผลิต", how:"หน่วย<b>ตันต่อเส้น</b> ตามรูปแบบการผูก ค่าบนป้ายรวม Safety factor แล้ว · ห้ามใช้สลิงที่ป้ายหายหรืออ่านไม่ได้"},
+  wll:{no:"4.6", src:"ป้าย (Tag) ที่สลิง, ตารางของผู้ผลิต", how:"ใช้กับโซ่ ตาข่ายโลหะ และแผนที่ทำก่อนมีตัวเลือก A/B · หน่วย<b>ตันต่อเส้น</b> ตามรูปแบบการผูก ค่าบนป้ายรวม Safety factor แล้ว · ห้ามใช้สลิงที่ป้ายหายหรืออ่านไม่ได้"},
   spread:{no:"4.14", src:"วัดบนชิ้นงาน หรือดูจากแบบ", how:"ระยะระหว่างจุดยก (Lifting lug) ที่สลิงจับ ใช้คำนวณความสูงสลิง = (ระยะ ÷ 2) × tan θ"},
   slingAng:{no:"4.7", src:"วัดหน้างาน หรือคำนวณ", how:"วัดจากแนวนอน (90° = สลิงตั้งตรง) · คำนวณได้จาก cos θ = (ระยะห่างจุดยก ÷ 2) ÷ ความยาวสลิง · ต้องไม่น้อยกว่า 45° ถ้าน้อยกว่าต้องแนบการคำนวณแรงรับ", ref:"S-320 E"},
   pinSize:{no:"4.12", src:"ตัวเลขที่ปั๊มบนตัว Shackle", how:"ขนาดหมุดเป็น<b>นิ้ว</b> (ตารางใน S-320 เขียนว่าเซนติเมตร แต่ตัวเลขเป็นนิ้ว)"},
