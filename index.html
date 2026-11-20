@@ -86,7 +86,10 @@ button{font:inherit;color:inherit}
 .btn.sm{height:34px;padding:0 12px;font-size:13.5px}
 @media (max-width:700px){.actions .btn .lbl{display:none}.actions .btn{width:38px;padding:0}}
 @media (max-width:420px){.appbar-row{gap:8px}.brand-mark{width:32px;height:32px}.pill{padding:5px 10px;font-size:12px}.brand-doc{display:none}.brand-name{font-size:15px}}
-@media (max-width:440px){.brand-text{display:none}}
+@media (max-width:440px){.brand-text{display:none}.brand{flex:none}.appbar-row{padding:10px 12px;gap:6px}.actions{gap:6px}.actions .btn{width:36px}.pill{padding:5px 9px;font-size:11.5px;gap:6px}}
+@media (max-width:372px){.brand{display:none}#hdr-pill{margin-right:auto}}
+#hdr-pill{min-width:0;overflow:hidden}
+#hdr-pill-text{overflow:hidden;text-overflow:ellipsis}
 
 .stepnav{max-width:1260px;margin:0 auto;padding:0 16px 10px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
 .stepnav::-webkit-scrollbar{display:none}
@@ -361,6 +364,14 @@ table.lc{border-collapse:separate;border-spacing:0;width:100%;font-family:var(--
 .sh-sig .nm{font-size:11px;text-align:center;font-weight:600}
 .sh-sig .dt{font-size:10px;text-align:center;color:#5A6776}
 .sh-note{font-size:10.5px;color:#5A6776;border-top:1px solid #E1E6EC;padding-top:8px}
+.sh-law{margin-top:8px;border:1px solid #E1E6EC;border-radius:6px;padding:7px 10px;font-size:11px;color:#3A4654}
+.sh-law .t{font-weight:600;color:#121B24}
+.sh-law ul{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin:0;padding:0;list-style:none}
+.sh-law li{display:flex;gap:6px;align-items:flex-start;line-height:1.4}
+.sh-law li i{flex:none;width:10px;height:10px;margin-top:3px;border:1px solid #9AA6B2;border-radius:2px}
+.sh-law li.on{color:#B86200;font-weight:600}
+.sh-law li.on i{background:#B86200;border-color:#B86200}
+.sh-law .n{margin-top:3px;color:#5A6776}
 .sh-foot{position:absolute;left:48px;right:48px;bottom:22px;display:flex;justify-content:space-between;font-size:10px;color:#8A96A3;font-family:"IBM Plex Mono",monospace}
 /* ---------- S-320 additions ---------- */
 .cl{display:flex;flex-direction:column;gap:6px}
@@ -585,6 +596,32 @@ table.plc td.h{background:#FAE1DF;color:#C92D2D;font-weight:700;border:2.5px sol
 .dlg-body{padding:14px 18px 16px;overflow:auto;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
 .dlg-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface)}
 .dlg-foot .sp{flex:1}
+/* print preview */
+.dlg.pv .dlg-card{max-width:900px;height:min(94vh,1240px);max-height:none}
+.dlg.pv .dlg-head h3 small{font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
+.pv-status{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 18px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.pv-status .pill{font-size:12.5px}
+.pv-body{background:var(--surface-2);padding:14px}
+.pv-pages{display:flex;flex-direction:column;align-items:center;gap:6px}
+.pv-page{position:relative;overflow:hidden;background:#fff;border-radius:4px;box-shadow:0 2px 14px rgba(0,0,0,.18);flex:none}
+.pv-page > .sheet{position:absolute;left:0;top:0;transform-origin:0 0}
+.pv-no{font-size:12px;color:var(--muted);margin-bottom:10px}
+.pv-body.zoom .pv-pages{align-items:flex-start;width:794px}
+.pv-wait{padding:40px 0;color:var(--muted);font-size:14px}
+@media (max-width:700px){.dlg.pv .dlg-card{height:94vh}.pv-body{padding:10px}}
+/* printing straight from the preview (outside Claude): only the A4 pages go to the printer */
+@media print{
+  @page{size:A4;margin:0}
+  body.pv-printing > :not(#dlg-preview){display:none !important}
+  body.pv-printing #dlg-preview{display:block !important;position:static;inset:auto;background:none;padding:0;opacity:1}
+  body.pv-printing #dlg-preview .dlg-card{display:block;max-width:none;width:auto;height:auto;max-height:none;border:0;border-radius:0;box-shadow:none;transform:none;overflow:visible;background:#fff}
+  body.pv-printing #dlg-preview .dlg-head,body.pv-printing #dlg-preview .pv-status,body.pv-printing #dlg-preview .dlg-foot,body.pv-printing #dlg-preview .pv-no{display:none !important}
+  body.pv-printing .pv-body{display:block;padding:0;overflow:visible;background:#fff}
+  body.pv-printing .pv-pages{display:block;width:auto}
+  body.pv-printing .pv-page{width:794px !important;height:1122px !important;box-shadow:none;border-radius:0;overflow:hidden;break-after:page;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body.pv-printing .pv-page.last{break-after:auto;page-break-after:auto}
+  body.pv-printing .pv-page > .sheet{position:static;transform:none !important}
+}
 @media (max-width:640px){
   .dlg{place-items:end stretch;padding:0}
   .dlg-card,.dlg.wide .dlg-card{max-width:none;border-radius:20px 20px 0 0;border-bottom:0;max-height:94vh;transform:translateY(40px)}
@@ -757,6 +794,10 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
         <span class="lbl">คัดลอกสรุป</span>
       </button>
+      <button class="btn" id="btn-preview" type="button" aria-label="ดูตัวอย่างก่อนพิมพ์">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="lbl">ดูตัวอย่าง</span>
+      </button>
       <button class="btn primary" id="btn-pdf" type="button" aria-label="ดาวน์โหลด PDF" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>
         <span class="lbl">ดาวน์โหลด PDF</span>
@@ -884,6 +925,13 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
         <div class="field"><label for="f-rigW">สลิงและ Shackle</label><div class="input"><input type="number" id="f-rigW" data-k="rigW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
         <div class="field"><label for="f-allowW">ค่าเผื่อของค้างในอุปกรณ์</label><div class="input"><input type="number" id="f-allowW" data-k="allowW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div><span class="hint">น้ำหรือผลิตภัณฑ์ค้าง สนิม ของแข็ง</span></div>
         <div class="field"><label for="f-otherW">อื่นๆ (Other)</label><div class="input"><input type="number" id="f-otherW" data-k="otherW" inputmode="decimal" step="1" min="0"><span class="unit">kg</span></div></div>
+      </div>
+      <h3 class="sub">ขนาดและจุดศูนย์ถ่วงของชิ้นงาน <span class="ref">กฎกระทรวงปั้นจั่น ข้อ 85</span></h3>
+      <div class="fields">
+        <div class="field"><label for="f-dimW">ความกว้างชิ้นงาน</label><div class="input"><input type="number" id="f-dimW" data-k="dimW" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        <div class="field"><label for="f-dimL">ความยาวชิ้นงาน</label><div class="input"><input type="number" id="f-dimL" data-k="dimL" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        <div class="field"><label for="f-dimH">ความสูงชิ้นงาน</label><div class="input"><input type="number" id="f-dimH" data-k="loadHt" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
+        <div class="field full"><label for="f-cog">ตำแหน่งจุดศูนย์ถ่วง (CoG)</label><input type="text" id="f-cog" data-k="cog" placeholder="เช่น กึ่งกลางชิ้นงาน สูงจากฐาน 0.9 ม. ตามแบบ DWG-xxx"></div>
       </div>
       <div class="stack" id="stack" aria-hidden="true"></div>
       <div class="legend" id="legend"></div>
@@ -1118,7 +1166,17 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
         <div class="ticks" id="crit-list"></div>
         <ul class="critlist" id="crit-eval"></ul>
       </div>
-      <h3 class="sub">สายไฟฟ้าใกล้งานยก <span class="ref">S-320 E</span></h3>
+      <div class="grp" id="law84" data-only="mobile boomtruck">
+        <h3 class="sub">แผนการยกตามกฎกระทรวงปั้นจั่น 2564 <span class="ref">ข้อ 84 · 85</span></h3>
+        <p class="subtle">เกณฑ์ S-320 ด้านบนใช้ตามเดิม ส่วนนี้เพิ่มตามกฎหมาย ระบบตรวจข้อที่คำนวณได้ให้เอง ติ๊กเพิ่มเฉพาะ 2 ข้อนี้</p>
+        <div class="ticks">
+          <label class="tick crit" for="f-cogshift"><input type="checkbox" id="f-cogshift" data-k="cogShift"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg></span><span class="t">จุดศูนย์ถ่วงของชิ้นงานอาจเปลี่ยนระหว่างยก<small>เช่น มีของเหลวหรือของที่เลื่อนได้อยู่ข้างใน</small></span></label>
+          <label class="tick crit" for="f-hazload"><input type="checkbox" id="f-hazload" data-k="hazLoad"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg></span><span class="t">ชิ้นงานอาจระเบิด หรือก่อให้เกิดอุบัติเหตุร้ายแรง<small>เช่น ถังแก๊ส ภาชนะรับแรงดัน สารเคมีอันตราย</small></span></label>
+        </div>
+        <ul class="critlist" id="law-eval"></ul>
+        <div class="infobox" id="law-note" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span id="law-note-t"></span></div>
+      </div>
+      <h3 class="sub">สายไฟฟ้าใกล้งานยก <span class="ref">S-320 E · กฎกระทรวง ข้อ 68</span></h3>
       <label class="tick crit" for="f-pnear"><input type="checkbox" id="f-pnear" data-k="powerNear"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"/></svg></span><span class="t">มีสายไฟฟ้าอยู่ใกล้แนวยก<small>ระยะจากสายไฟถึงส่วนใดของปั้นจั่นหรือของที่ยก</small></span></label>
       <div class="grp" id="power-grp">
         <div class="fields">
@@ -1126,7 +1184,7 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
           <div class="field"><label for="f-pd">ระยะห่างใกล้สุดที่จะเกิดขึ้น</label><div class="input"><input type="number" id="f-pd" data-k="powerDist" inputmode="decimal" step="0.1" min="0"><span class="unit">ม.</span></div></div>
         </div>
         <div class="readouts">
-          <div class="ro hero"><span class="k">ระยะห่างขั้นต่ำขณะยก</span><span class="v" id="o-preq">—</span><span class="n">ไม่เกิน 50 kV = 3 ม. · เกิน 50 kV เพิ่ม 1 ซม. ต่อ 1 kV</span></div>
+          <div class="ro hero"><span class="k">ระยะห่างขั้นต่ำขณะยก</span><span class="v" id="o-preq">—</span><span class="n" id="o-preq-n">ใช้ค่าที่มากกว่าระหว่าง S-320 กับกฎกระทรวง ข้อ 68</span></div>
         </div>
       </div>
     </section>
@@ -1224,6 +1282,14 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
       <p class="note" id="ds-note"></p>
     </div>
     <div class="dlg-foot"><button class="btn line" type="button" id="ds-line">ส่งทาง LINE</button><button class="btn" type="button" id="ds-share">แชร์</button><button class="btn" type="button" id="ds-copy">คัดลอก</button></div>
+  </div>
+</div>
+<div class="dlg wide pv" id="dlg-preview" role="dialog" aria-modal="true" aria-labelledby="pv-title" hidden>
+  <div class="dlg-card">
+    <div class="dlg-head"><h3 id="pv-title">ตัวอย่างก่อนพิมพ์ <small id="pv-count"></small></h3><button class="dlg-x" type="button" data-close aria-label="ปิด">×</button></div>
+    <div class="pv-status" id="pv-status"></div>
+    <div class="dlg-body pv-body" id="pv-body"><div class="pv-pages" id="pv-pages"></div></div>
+    <div class="dlg-foot"><button class="btn sm" type="button" id="pv-zoom" aria-pressed="false">ขยายเต็มขนาด</button><span class="sp"></span><button class="btn sm" type="button" data-close>กลับไปแก้</button><button class="btn sm" type="button" id="pv-print" hidden>พิมพ์</button><button class="btn primary sm" type="button" id="pv-pdf"><span class="lbl">ดาวน์โหลด PDF</span></button></div>
   </div>
 </div>
 <input type="file" id="import-in" accept=".json,application/json" hidden>
@@ -1380,6 +1446,10 @@ function slingRating(s){
   return o;
 }
 const HITCH_SHORT = {vertical:"ตรง", choker:"รัดคอ", basket:"Basket"};
+// กฎกระทรวงปั้นจั่น 2564 ข้อ 68 (1): minimum clearance when lifting near power lines. Over 500 kV is not covered (null).
+const lawPowerDist = kv => kv<=69 ? 3.1 : kv<=115 ? 3.3 : kv<=230 ? 4 : kv<=500 ? 6 : null;
+const LAW85_PREP = "ผู้จัดทำแผนตามกฎกระทรวงข้อ 85 (ผู้ควบคุมการใช้ปั้นจั่นที่ผ่านการอบรม)";
+const sigSub = (g, r) => g.id==="r2" && r && !r.OH ? `${g.sub} · ${LAW85_PREP}` : g.sub;
 function slingSrcText(sr, s){
   if(sr.mode==="none") return "ไม่มีป้าย ห้ามใช้";
   if(sr.mode==="manual") return "กรอกเองตามรูปแบบการผูก";
@@ -1387,6 +1457,12 @@ function slingSrcText(sr, s){
   if(sr.mode==="A") return `${sr.opt} · ${s.wBy==="mbl" ? "ใบเซอร์ (MBL)" : "ป้าย (WLL)"}`;
   if(sr.mode==="B") return `${sr.opt} · EN 13414-1`;
   return sr.color[3]!=null ? `สี${sr.color[1]} ${sr.color[3]} t (EN ${sr.type==="web"?"1492-1":"1492-2"})` : `สีส้ม ตามป้าย (EN ${sr.type==="web"?"1492-1":"1492-2"})`;
+}
+function slingBaseText(sr, s){
+  if(sr.mode==="A") return s.wBy==="mbl" ? `MBL ${sr.calc}` : `ป้าย ${f2(sr.base)} t`;
+  if(sr.mode==="B") return `EN แกนเชือก 1770 Ø ${fmtD(sr.d)} mm = ${f2(sr.en)} t${sr.base<sr.en ? ` → ใช้ป้าย ${f2(sr.base)} t` : ""}`;
+  if(sr.mode==="color") return `สี${sr.color[1]} = ${f2(sr.base)} t`;
+  return sr.calc || "—";
 }
 function slingSizeText(s){
   if(s.slingType==="wire" && num(s.wDia)>0) return `Ø ${fmtD(num(s.wDia))} mm` + (has(s.slingSize) ? ` ${s.slingSize}` : "");
@@ -1409,6 +1485,9 @@ const BASE = {
   outMode:"auto", outManual:"", padW:"", padL:"", ground:"", wind:"", windLim:"9.8",
   crit:{overPP:false,tandem:false,poles:false,travel:false,travelHaz:false},
   powerNear:false, kV:"", powerDist:"",
+  // กฎกระทรวงปั้นจั่น 2564: load size and CoG (ข้อ 85(5)), plan triggers the app cannot see (ข้อ 84(4)(5)).
+  // Lifting steps (ข้อ 85(8)) are in the separate Method Statement attached to the plan.
+  dimW:"", dimL:"", cog:"", cogShift:"", hazLoad:"",
   cl:{}, calcMatch:false,
   btKind:"tele", libId:"", libChart:null, photos:[],
   sigs:{r1:{name:"",img:null,at:null}, r2:{name:"",img:null,at:null}, nw:{name:"",img:null,at:null}},
@@ -1427,6 +1506,7 @@ const EXAMPLE = mk({
   cond:"used", wsrc:"nameplate", loadW:"10200", ballW:"0", hookW:"450", beamW:"0", rigW:"350", allowW:"300", otherW:"0",
   craneName:"ปั้นจั่นเคลื่อนที่ 50 ตัน (Load chart สาธิต)", craneId:"MC-050", inspExp:"2027-01-15",
   craneW:"36000", boom:"24", radiusPick:"7.2", radiusSet:"8.6", capMode:"chart",
+  dimW:"1.4", dimL:"6.2", loadHt:"1.6", cog:"กึ่งกลางความยาว ห่างหน้าแปลนฝั่งท่อ 3.0 ม. สูงจากฐาน 0.8 ม. (ตามแบบ)",
   legs:4, hitch:"vertical", slingType:"wire", wSrc:"A", wBy:"tag", wTag:"8", wDia:"26", slingLen:"4.0", slingAng:"60", pinSize:"1-1/8", shackleCap:"9.5",
   outMode:"auto", padW:"1.5", padL:"1.5", ground:"20", wind:"6.2", windLim:"9.8",
   crit:{overPP:true,tandem:false,poles:false,travel:false,travelHaz:false},
@@ -1444,6 +1524,7 @@ const EXAMPLE_OH = mk({
   cond:"used", wsrc:"nameplate", loadW:"5200", beamW:"600", rigW:"250", allowW:"0", otherW:"0",
   craneName:"Overhead crane 10 ตัน ช่องเครนที่ 2", craneId:"OHC-02", inspExp:"2027-03-31",
   ohType:"dg", hoist:"main", swlCrane:"10000", swlHoist:"10000", span:"18", hookH:"8.5", obstH:"2.4", clearReq:"0.5", loadHt:"1.2", outdoor:false,
+  dimW:"0.8", dimL:"1.6", cog:"กึ่งกลางเพลาโรเตอร์",
   legs:2, hitch:"vertical", slingType:"wire", wSrc:"B", wDia:"20", slingLen:"2.0", spread:"1.6", slingAng:"60", pinSize:"7/8", shackleCap:"6.5",
   wind:"", windLim:"",
   cl:{c1:"na",c2:"na",c3:"na",c4:"y",c5:"y",c6:"y",c7:"y",c8:"na",c9:"na",c10:"y",c11:"y",c12:"y",c13:"y",c14:"y",c15:"y",c16:"y",c17:"y",c18:"y",c19:"na",c20:"y",c21:"y",c22:"",c23:"",c24:"y",o1:"y",o2:"y"},
@@ -1459,6 +1540,7 @@ const EXAMPLE_BT = mk({
   cond:"new", wsrc:"nameplate", loadW:"1450", ballW:"0", hookW:"40", beamW:"0", rigW:"60", allowW:"0", otherW:"0",
   craneName:"Boom truck 5 ตัน บูม 5 ท่อน (ตัวอย่าง)", craneId:"BT-05", inspExp:"2027-02-28",
   craneW:"14500", boom:"10.6", radiusPick:"4.5", radiusSet:"6.0", capMode:"manual", capRear:"2400", capFront:"", capSide:"2400",
+  dimW:"0.6", dimL:"1.2", loadHt:"0.8", cog:"ค่อนไปทางมอเตอร์ ห่างปลายมอเตอร์ 0.5 ม.",
   legs:2, hitch:"vertical", slingType:"web", synColor:"yellow", slingSize:"กว้าง 90 mm", slingLen:"2.0", slingAng:"60", pinSize:"5/8", shackleCap:"3.25",
   outMode:"auto", padW:"1.0", padL:"1.0", ground:"15", wind:"4.5", windLim:"9.0",
   cl:{c1:"y",c2:"y",c3:"y",c4:"y",c5:"y",c6:"y",c7:"",c8:"y",c9:"na",c10:"y",c11:"y",c12:"y",c13:"y",c14:"na",c15:"y",c16:"y",c17:"y",c18:"y",c19:"na",c20:"y",c21:"y",c22:"y",c23:"y",c24:"",b1:"y",b2:"y",b3:"y",b4:""},
@@ -1669,7 +1751,9 @@ function compute(s){
 
   // ---- power line (S-320 E) ----
   r.power = !!s.powerNear; r.kV = num(s.kV); r.pDist = num(s.powerDist);
-  r.pReq = has(s.kV) ? 3 + Math.max(0, r.kV-50)*0.01 : null;
+  r.pReqS320 = has(s.kV) ? 3 + Math.max(0, r.kV-50)*0.01 : null;
+  r.pReqLaw = has(s.kV) ? lawPowerDist(r.kV) : null;      // กฎกระทรวงปั้นจั่น 2564 ข้อ 68 (1)
+  r.pReq = r.pReqS320==null ? null : Math.max(r.pReqS320, r.pReqLaw||0);
 
   // ---- dates ----
   const liftD = has(s.date) ? new Date(s.date+"T00:00:00") : new Date(todayISO()+"T00:00:00");
@@ -1777,7 +1861,9 @@ function compute(s){
   if(r.power){
     let tone, meta, val="—";
     if(r.pReq==null || !has(s.powerDist)){ tone="idle"; meta="กรอกแรงดันและระยะห่างจากสายไฟ"; }
-    else { val=f2(r.pDist)+" m"; meta=`ต้องห่างอย่างน้อย ${f2(r.pReq)} ม. ที่ ${r.kV} kV`; tone = r.pDist<r.pReq ? "bad" : "ok"; if(r.pDist<r.pReq) meta="ใกล้สายไฟเกินกำหนด "+meta; }
+    else { val=f2(r.pDist)+" m"; meta=`ต้องห่างอย่างน้อย ${f2(r.pReq)} ม. ที่ ${r.kV} kV`; tone = r.pDist<r.pReq ? "bad" : "ok";
+      if(r.pDist<r.pReq) meta="ใกล้สายไฟเกินกำหนด "+meta+(r.pReqLaw!=null && r.pDist<r.pReqLaw ? " · กฎกระทรวงข้อ 68 ต้องมีมาตรการและขออนุญาตการไฟฟ้าในพื้นที่ก่อน" : "");
+      if(r.pReqLaw==null) { tone = tone==="ok" ? "warn" : tone; meta += " · เกิน 500 kV ให้ปรึกษาการไฟฟ้า"; } }
     C.push({id:"power", label:"ระยะห่างสายไฟฟ้า", val, meta, tone});
   }
 
@@ -1791,6 +1877,28 @@ function compute(s){
     {t:"เคลื่อนที่ขณะแขวนของที่มีอันตราย หรือเกิน 50%", met: !!s.crit.travel && (!!s.crit.travelHaz || (p!=null && p>50)), note: !s.crit.travel ? "ไม่มีในงานนี้" : (s.crit.travelHaz ? "ของที่แขวนมีอันตราย" : `ใช้ ${pctTxt}`)}
   ];
   r.critReasons = r.exempt ? [] : r.critEval.filter(c=>c.met).map(c=>c.t);
+  // ---- กฎกระทรวงปั้นจั่น 2564 ข้อ 84: when a written lifting plan is required (truck-mounted / mobile cranes) ----
+  r.law84 = OH ? [] : [
+    {t:"ใช้ปั้นจั่นตั้งแต่ 2 คันยกร่วมกัน", met: !!s.crit.tandem, note: s.crit.tandem ? "ติ๊กไว้ในเกณฑ์ S-320" : "ไม่มีในงานนี้"},
+    {t:"น้ำหนักเกิน 75% ของพิกัดยกตาม load chart", met: p!=null && p>75, note: p!=null ? `ใช้ ${pctTxt}` : "รอข้อมูล"},
+    {t:"ทำงานใกล้สายไฟฟ้าน้อยกว่าระยะในข้อ 68", met: r.power && r.pReqLaw!=null && has(s.powerDist) && r.pDist<r.pReqLaw, note: !r.power ? "ไม่มีสายไฟใกล้แนวยก" : (r.pReqLaw!=null && has(s.powerDist) ? `ห่าง ${f2(r.pDist)} ม. · ข้อ 68 กำหนด ${f2(r.pReqLaw)} ม.` : "กรอกแรงดันและระยะห่าง")},
+    {t:"จุดศูนย์ถ่วงของชิ้นงานอาจเปลี่ยนระหว่างยก", met: !!s.cogShift, note: s.cogShift ? "ติ๊กไว้" : "ไม่มีในงานนี้"},
+    {t:"ชิ้นงานอาจระเบิด หรือก่อให้เกิดอุบัติเหตุร้ายแรง", met: !!s.hazLoad, note: s.hazLoad ? "ติ๊กไว้" : "ไม่มีในงานนี้"},
+    {t:"ชิ้นงานหนักตั้งแต่ 25 ตัน", met: r.loadW>=25000, note: r.loadW>0 ? `ชิ้นงาน ${kg(r.loadW)} kg` : "รอข้อมูล"}
+  ];
+  r.lawPlan = r.law84.some(x=>x.met);
+  r.lawMissing = r.lawPlan ? [
+    !(num(s.dimW)>0 && num(s.dimL)>0 && r.loadHt>0) && "ขนาดชิ้นงาน",
+    !has(s.cog) && "ตำแหน่งจุดศูนย์ถ่วง"
+  ].filter(Boolean) : [];
+  const nm = x => String(x||"").replace(/\s+/g,"");
+  r.prepMismatch = r.lawPlan && has(s.supervisor) && has(s.sigs && s.sigs.r2 && s.sigs.r2.name) && nm(s.sigs.r2.name)!==nm(s.supervisor);
+  if(r.lawPlan){
+    let tone = "ok", meta = "ข้อมูลครบตามข้อ 85";
+    if(r.lawMissing.length){ tone = "idle"; meta = "ยังขาด: " + r.lawMissing.join(", "); }
+    else if(r.prepMismatch){ tone = "warn"; meta = "ผู้ทบทวนคนที่ 2 (ผู้จัดทำแผน) ไม่ใช่ผู้ควบคุมการใช้ปั้นจั่นในทีม"; }
+    C.push({id:"law", label:"แผนการยกตามกฎกระทรวง", val:"ต้องมีแผน", meta, tone});
+  }
 
   // ---- checklist ----
   r.CK = checklistFor(r.type);
@@ -1815,7 +1923,7 @@ function compute(s){
   r.hash = planHash(s);
   const signedOk = g => !!(g && g.img && has(g.name));
   const staleOf = g => !!(g && g.img && g.h && g.h!==r.hash);
-  r.sigReq = SIGS.filter(g=>!g.critOnly || r.isCritical).map(g=>g.id);
+  r.sigReq = SIGS.filter(g=>!g.critOnly || r.isCritical || (g.id==="r2" && r.lawPlan)).map(g=>g.id);
   r.sigStale = SIGS.filter(g=>staleOf(s.sigs && s.sigs[g.id])).map(g=>g.id);
   r.sigDone = r.sigReq.filter(id=>{ const g=s.sigs && s.sigs[id]; return signedOk(g) && !staleOf(g); }).length;
   r.matchOk = !r.isCritical || !!s.calcMatch;
@@ -1826,7 +1934,7 @@ function compute(s){
   C.push({id:"sign", label:"ทวนสอบและอนุมัติ", val:`${r.sigDone}/${r.sigReq.length}`, meta: r.sigStale.some(id=>r.sigReq.includes(id)) ? "แก้แผนหลังลงนาม ต้องลงนามใหม่" : r.sigDone<r.sigReq.length ? "ยังลงนามไม่ครบ" : (!r.matchOk ? "ยังไม่ยืนยันผลคำนวณตรงกัน" : "ครบ"), tone: (r.sigDone===r.sigReq.length && r.matchOk) ? "ok" : "warn"});
   r.checks = C;
 
-  r.ready = (verdict==="normal"||verdict==="critical") && idles.length===0 && r.clDone && r.sigDone===r.sigReq.length && r.matchOk;
+  r.ready = (verdict==="normal"||verdict==="critical") && idles.length===0 && r.clDone && r.sigDone===r.sigReq.length && r.matchOk && !r.lawMissing.length;
 
   const reasons = [];
   if(verdict==="pending") reasons.push({tone:"idle", text:"กรอกน้ำหนักชิ้นงานและข้อมูลปั้นจั่น"});
@@ -1835,6 +1943,7 @@ function compute(s){
   if(verdict==="normal"||verdict==="critical"){
     C.filter(c=>evalIds.includes(c.id) && c.tone==="warn" && c.id!=="cap").forEach(c=>reasons.push({tone:"warn", text:`${c.label}: ${c.meta}`}));
     idles.forEach(b=>reasons.push({tone:"idle", text:`ยังไม่ได้ประเมิน${b.label}`}));
+    if(r.lawMissing.length) reasons.push({tone:"idle", text:`แผนตามกฎกระทรวงข้อ 85 ยังขาด${r.lawMissing.join(" ")}`});
     if(!r.clDone) reasons.push({tone:r.clNo?"bad":"idle", text: r.clNo ? `แบบตรวจสอบก่อนยกตอบ “ไม่ใช่” ${r.clNo} ข้อ` : `แบบตรวจสอบก่อนยกตอบแล้ว ${r.clAnswered} จาก ${r.clTotal} ข้อ`});
     const staleReq = r.sigStale.filter(id=>r.sigReq.includes(id));
     if(staleReq.length) reasons.push({tone:"warn", text:`แก้แผนหลังลงนาม ${staleReq.map(id=>SIGS.find(g=>g.id===id).role).join(", ")} ต้องลงนามใหม่`});
@@ -2130,7 +2239,7 @@ function buildUI(){
   $("#check-list").innerHTML = all.map((c,i)=>`<div class="cl-row" data-cl="${c.id}" ${c.id.startsWith("o")?'data-only="overhead"':c.id.startsWith("b")?'data-only="boomtruck"':""}><span class="no">${/^[ob]/.test(c.id)?"+"+c.id.slice(1):i+1}</span><span class="t">${esc(c.t)}${c.s?`<small>${esc(c.s)}</small>`:""}</span><span class="tri" role="group" aria-label="คำตอบข้อ ${i+1}"><button type="button" data-v="y">ใช่</button><button type="button" data-v="n">ไม่ใช่</button><button type="button" data-v="na">N/A</button></span></div>`).join("");
   $("#sigs").innerHTML = SIGS.map(g=>`
     <div class="sig" data-sig="${g.id}">
-      <div class="sig-role"><div><b>${esc(g.role)}</b><small>${esc(g.sub)}</small></div><span class="chip" data-sigchip="${g.id}">รอลงนาม</span></div>
+      <div class="sig-role"><div><b>${esc(g.role)}</b><small data-sigsub="${g.id}">${esc(g.sub)}</small></div><span class="chip" data-sigchip="${g.id}">รอลงนาม</span></div>
       <div class="field"><label for="sg-${g.id}">ชื่อ-สกุล</label><input type="text" id="sg-${g.id}" data-k="sigs.${g.id}.name"></div>
       <div class="sig-pad"><span class="base"></span><span class="x">×</span><span class="hint" data-sighint="${g.id}">เซ็นชื่อที่นี่</span><canvas aria-label="ช่องลงลายมือชื่อ ${esc(g.role)}"></canvas></div>
       <div class="sig-foot"><span data-sigtime="${g.id}"></span><button type="button" class="linkbtn" data-sigclear="${g.id}">ล้างลายเซ็น</button></div>
@@ -2329,6 +2438,12 @@ function render(){
   $("#travelHaz-row").hidden = !s.crit.travel;
   $("#crit-eval").innerHTML = r.critEval.map(c=>`<li data-met="${c.met}"><span>${esc(c.t)}</span><span class="chip" data-tone="${c.met?"warn":"ok"}">${c.met?"เข้าเกณฑ์":"ไม่เข้าเกณฑ์"}</span><small>${esc(c.note)}</small></li>`).join("");
   $("#power-grp").hidden = !r.power;
+  if(!OH){
+    $("#law-eval").innerHTML = r.law84.map(c=>`<li data-met="${c.met}"><span>${esc(c.t)}</span><span class="chip" data-tone="${c.met?"warn":"ok"}">${c.met?"เข้าเงื่อนไข":"ไม่เข้า"}</span><small>${esc(c.note)}</small></li>`).join("");
+    $("#law-note").hidden = !r.lawPlan;
+    $("#law-note-t").innerHTML = r.lawPlan ? `ต้องมีแผนการยกเป็นหนังสือตามข้อ 84 · <b>ผู้จัดทำแผน</b>คือผู้ควบคุมการใช้ปั้นจั่นที่ผ่านการอบรม (ลงนามช่องผู้ทบทวนคนที่ 2) · ต้องมีขนาด น้ำหนัก และจุดศูนย์ถ่วงของชิ้นงาน · <b>แนบ Method Statement</b> (ขั้นตอนการยกและมาตรการความปลอดภัย) · <b>ติดแผนไว้ที่หน้างาน</b> และเก็บสำเนาไว้ให้พนักงานตรวจความปลอดภัย (ข้อ 85)${r.lawMissing.length?` · <b style="color:var(--warn)">ยังขาด ${esc(r.lawMissing.join(", "))}</b>`:""}` : "";
+  }
+  $("#o-preq-n").textContent = r.pReq!=null ? `S-320 ${f2(r.pReqS320)} ม. · กฎกระทรวงข้อ 68 ${r.pReqLaw!=null?f2(r.pReqLaw)+" ม.":"ไม่ครอบคลุมเกิน 500 kV"} → ใช้ค่าที่มากกว่า` : "ใช้ค่าที่มากกว่าระหว่าง S-320 กับกฎกระทรวง ข้อ 68";
   $("#o-preq").innerHTML = r.pReq!=null ? `${f2(r.pReq)}<small>ม.</small>` : "—";
   const pwC = ck("power");
   if(r.exempt) setStatus("crit", pwC && pwC.tone==="bad" ? "bad" : "ok", pwC && pwC.tone==="bad" ? "ใกล้สายไฟ" : "ยกเว้นตามข้อ F");
@@ -2344,6 +2459,7 @@ function render(){
   SIGS.forEach(g=>{
     const req = r.sigReq.includes(g.id), d = s.sigs[g.id] || {}, signed = !!(d.img && has(d.name)), stale = r.sigStale.includes(g.id);
     const card = $(`.sig[data-sig="${g.id}"]`);
+    const sub = $(`[data-sigsub="${g.id}"]`); if(sub) sub.textContent = sigSub(g, r);
     card.classList.toggle("optional", !req);
     card.classList.toggle("need", !!(req && !signed && g.critOnly));
     card.classList.toggle("stale", stale);
@@ -2421,7 +2537,7 @@ function onInput(e){
   const el = e.target.closest("[data-k]"); if(!el || el.classList.contains("seg") || el.id==="f-lib") return;
   const k = el.dataset.k, v = el.type==="checkbox" ? el.checked : el.value;
   setPath(S, k, v);
-  if(k==="slingAng") $$('[data-k="slingAng"]').forEach(x=>{ if(x!==el) x.value=v; });
+  if(k==="slingAng" || k==="loadHt") $$(`[data-k="${k}"]`).forEach(x=>{ if(x!==el) x.value=v; });
   S.isExample = false; save(); render();
 }
 document.addEventListener("input", onInput);
@@ -2521,6 +2637,7 @@ function summaryText(){
   if(!r.OH) L.push(`แรงกดพื้น ${f1(r.press)} t/m²${r.groundPct!=null?` (${r.groundPct.toFixed(0)}% ของที่รับได้)`:""}`);
   if(r.windApplies) L.push(`ลม ${has(s.wind)?f1(r.wind):"-"} / ${f1(r.windLim)} m/s`);
   if(r.critReasons.length){ L.push(""); L.push("เข้าเกณฑ์ Critical lift (S-320 I.C):"); r.critReasons.forEach(t=>L.push("- "+t)); }
+  if(r.lawPlan){ L.push(""); L.push("ต้องมีแผนการยกตามกฎกระทรวงปั้นจั่น 2564 ข้อ 84:"); r.law84.filter(x=>x.met).forEach(x=>L.push("- "+x.t)); }
   const bad = r.checks.filter(c=>c.tone==="bad");
   if(bad.length){ L.push(""); L.push("ไม่ผ่าน:"); bad.forEach(c=>L.push(`- ${c.label}: ${c.meta}`)); }
   L.push("");
@@ -2587,6 +2704,8 @@ function sheetHTML(opt){
       <section class="sh-sec"><h3><span class="n">02</span>น้ำหนัก (kg)</h3>
         <div class="kv one">
           ${kv("สภาพอุปกรณ์ / แหล่งข้อมูล", `${s.cond==="used"?"ใช้แล้ว":"ใหม่"} / ${WSRC[s.wsrc]||"—"}`)}
+          ${kv("ขนาด กว้าง × ยาว × สูง", (has(s.dimW)||has(s.dimL)||has(s.loadHt)) ? `${has(s.dimW)?f2(num(s.dimW)):"—"} × ${has(s.dimL)?f2(num(s.dimL)):"—"} × ${has(s.loadHt)?f2(num(s.loadHt)):"—"} m` : "—")}
+          ${kv("จุดศูนย์ถ่วง (CoG)", s.cog||"—")}
           ${kv("น้ำหนักเปล่าของชิ้นงาน", kg(r.loadW))}
           ${OH ? kv("Headache ball / Block", "ไม่นับรวม") : kv("Headache ball / Block", `${kg(r.ballW)} / ${kg(r.hookW)}`)}
           ${kv("Lifting bar", kg(r.beamW))}
@@ -2639,7 +2758,7 @@ function sheetHTML(opt){
         <div class="kv one">
           ${kv("ประเภท / รูปแบบการผูก", `${SLING_TYPES[s.slingType]||"—"} / ${HITCH[s.hitch]||"—"}`)}
           ${kv("ข้อมูลพิกัดสลิง", slingSrcText(r.sr, s))}
-          ${r.sr.base>0 && r.sr.mode!=="manual" ? kv("พิกัดยกตรงต่อเส้น", `${r.sr.src ? r.sr.src+": " : ""}${r.sr.calc}`) : ""}
+          ${r.sr.base>0 && r.sr.mode!=="manual" ? kv("พิกัดยกตรงต่อเส้น", slingBaseText(r.sr, s)) : ""}
           ${kv("จำนวนสลิง / คิดรับ", `${r.legs} / ${r.legsEff} เส้น`)}
           ${kv("ขนาด / ความยาวสลิง", `${slingSizeText(s)} / ${has(s.slingLen)?f1(num(s.slingLen))+" m":"—"}`)}
           ${kv("มุมสลิงจากแนวนอน", r.legs===1?"90°":(r.sAng>0?r.sAng.toFixed(0)+"°":"—"))}
@@ -2668,7 +2787,9 @@ function sheetHTML(opt){
     <section class="sh-sec"><h3><span class="n">06</span>เกณฑ์ Critical lift ตาม S-320 I.C<span class="r">${r.exempt?"ยกเว้นตามข้อ F":(r.critReasons.length?"เป็น Critical lift":"ไม่เป็น Critical lift")}</span></h3>
       ${r.exempt ? `<div style="font-size:11px;color:#3A4654">ปั้นจั่นรางในอาคาร รอกโมโนเรล และรอกแขนยึด ไม่ต้องทำใบอนุญาตงานยกที่มีความเสี่ยงตาม S-320 ข้อ F แต่ห้ามยกเกินพิกัดที่ระบุ</div>`
        : `<table class="sh-tbl"><thead><tr><th>เกณฑ์</th><th>ข้อมูลจากแผน</th><th style="width:80px">ผล</th></tr></thead><tbody>${r.critEval.map(c=>`<tr><td>${esc(c.t)}</td><td>${esc(c.note)}</td><td style="font-weight:600;color:${c.met?"#B86200":"#12845A"}">${c.met?"เข้าเกณฑ์":"ไม่เข้าเกณฑ์"}</td></tr>`).join("")}</tbody></table>`}
-      <div style="font-size:11px;color:#3A4654;margin-top:6px">สายไฟฟ้าใกล้แนวยก: ${r.power ? `${esc(String(r.kV||"—"))} kV · ห่าง ${f2(r.pDist)} m · ต้องไม่น้อยกว่า ${f2(r.pReq)} m` : "ไม่มี"}</div>
+      <div style="font-size:11px;color:#3A4654;margin-top:6px">สายไฟฟ้าใกล้แนวยก: ${r.power ? `${esc(String(r.kV||"—"))} kV · ห่าง ${f2(r.pDist)} m · ต้องไม่น้อยกว่า ${f2(r.pReq)} m (S-320 ${f2(r.pReqS320)} · กฎกระทรวงข้อ 68 ${r.pReqLaw!=null?f2(r.pReqLaw):"—"} ใช้ค่าที่มากกว่า)` : "ไม่มี"}</div>
+    ${OH ? "" : `<div class="sh-law"><div class="t">กฎกระทรวงปั้นจั่น 2564 ข้อ 84: ${r.lawPlan ? `<span style="color:#B86200">ต้องมีแผนการยกเป็นหนังสือ</span> เพราะ${esc(r.law84.filter(x=>x.met).map(x=>x.t).join(" · "))}` : "ไม่เข้าเงื่อนไขทั้ง 6 ข้อ (ยังใช้เกณฑ์ S-320 ด้านบน)"}</div>
+        ${r.lawPlan ? `<div class="n">ข้อ 85: จัดทำโดยผู้ควบคุมการใช้ปั้นจั่นที่ผ่านการอบรม (ผู้ทบทวนคนที่ 2) · ขั้นตอนการยกและมาตรการความปลอดภัยตาม Method Statement ที่แนบ · ติดแผนนี้ไว้ที่บริเวณงานยก และเก็บสำเนาไว้ให้พนักงานตรวจความปลอดภัยตรวจสอบ</div>` : ""}</div>`}
     </section>
     ${foot(2)}
   </div>`;
@@ -2683,7 +2804,7 @@ function sheetHTML(opt){
     <section class="sh-sec"><h3><span class="n">08</span>การทวนสอบและอนุมัติ<span class="r">ลงนาม ${r.sigDone}/${r.sigReq.length}</span></h3>
       <div style="font-size:11px;margin-bottom:6px">${r.isCritical?`ผลคำนวณของผู้ทบทวนคนที่ 1 และ 2 ตรงกัน: <b style="color:${s.calcMatch?"#12845A":"#B86200"}">${s.calcMatch?"ยืนยันแล้ว":"ยังไม่ยืนยัน"}</b> (S-320 II.B)${s.sigs.r2 && s.sigs.r2.calc ? ` · คนที่ 2 คำนวณได้ น้ำหนักรวม ${kg(s.sigs.r2.calc.g)} kg พิกัด ${kg(s.sigs.r2.calc.c)} kg`:""}`:"งานนี้ไม่เป็น Critical lift ผู้ทบทวนคนที่ 2 และตัวแทน NatureWorks ไม่บังคับ"}</div>
       <div class="sh-sigs s3">${SIGS.map(g=>{ const d=s.sigs[g.id]||{}; const req=r.sigReq.includes(g.id); const stale=r.sigStale.includes(g.id);
-        return `<div class="sh-sig" style="${req?"":"opacity:.55"}"><div class="role">${esc(g.role)}<small>${esc(req?g.sub:"ไม่บังคับสำหรับแผนนี้")}</small></div><div class="img">${d.img?`<img src="${d.img}" alt="" style="${stale?"opacity:.35":""}">`:""}</div><div class="nm">${esc(d.name||"(..............................)")}</div><div class="dt" style="${stale?"color:#C92D2D":""}">${stale?"แก้แผนหลังลงนาม ต้องลงนามใหม่":d.at?esc((d.via==="link"?"ผ่านลิงก์ ":"")+thDateTime(d.at)):"วันที่ ....../....../......"}</div></div>`; }).join("")}</div>
+        return `<div class="sh-sig" style="${req?"":"opacity:.55"}"><div class="role">${esc(g.role)}<small>${esc(req?sigSub(g, r):"ไม่บังคับสำหรับแผนนี้")}</small></div><div class="img">${d.img?`<img src="${d.img}" alt="" style="${stale?"opacity:.35":""}">`:""}</div><div class="nm">${esc(d.name||"(..............................)")}</div><div class="dt" style="${stale?"color:#C92D2D":""}">${stale?"แก้แผนหลังลงนาม ต้องลงนามใหม่":d.at?esc((d.via==="link"?"ผ่านลิงก์ ":"")+thDateTime(d.at)):"วันที่ ....../....../......"}</div></div>`; }).join("")}</div>
       ${r.ack.some(a=>a.signed) ? `<div class="sh-ack"><div class="t">ทีมยกรับทราบแผน</div>${r.ack.map(a=>`<div class="a"><span>${esc(a.lab)}</span><div class="im">${a.signed?`<img src="${a.a.img}" alt="" style="${a.stale?"opacity:.35":""}">`:""}</div><b>${esc(a.name||(a.a&&a.a.name)||"—")}</b><small>${a.stale?"เซ็นก่อนแก้แผน":a.signed?esc(thDateTime(a.a.at)):"ยังไม่เซ็น"}</small></div>`).join("")}</div>` : ""}
     </section>
     <div class="sh-note">คำนวณจากข้อมูลที่ผู้จัดทำกรอก พิกัดยกต้องอ้างอิงข้อมูลของผู้ผลิตปั้นจั่นคันที่ใช้จริง แรงกดขาค้ำแบบประมาณใช้ 75% ของน้ำหนักปั้นจั่นรวมน้ำหนักยก ผู้บังคับปั้นจั่นและหัวหน้างานยกต้องมีสำเนา Safe Work Permit และใบอนุญาตงานยกก่อนเริ่มยก และยกได้ภายใต้เงื่อนไขในใบอนุญาตเท่านั้น (S-320 II.C)</div>
@@ -2702,16 +2823,20 @@ function sheetHTML(opt){
   return p1 + p2 + pCalc + p3 + pp;
 }
 
-$("#btn-pdf").addEventListener("click", async ()=>{
-  const btn = $("#btn-pdf"); if(btn.disabled || !pdfMode) return;
+async function loadSheetPhotos(){
+  const photos = [];
+  for(const ph of (S.photos||[])){ const rec = await IDB.get(ph.id); if(rec && rec.blob) photos.push({src: await blobToDataURL(rec.blob), cap: ph.cap||"", w: ph.w||rec.w, h: ph.h||rec.h}); }
+  return photos;
+}
+let pdfBusy = false;
+async function makePDF(btn){
+  if(pdfBusy || !pdfMode) return;
   const lbl = btn.querySelector(".lbl"), old = lbl.textContent;
-  btn.disabled = true; lbl.textContent = "กำลังสร้าง…";
+  pdfBusy = true; btn.disabled = true; lbl.textContent = "กำลังสร้าง…";
   const host = $("#sheet-host");
   try{
     if(!window.html2canvas || !window.jspdf) throw {code:"lib"};
-    const photos = [];
-    for(const ph of (S.photos||[])){ const rec = await IDB.get(ph.id); if(rec && rec.blob) photos.push({src: await blobToDataURL(rec.blob), cap: ph.cap||"", w: ph.w||rec.w, h: ph.h||rec.h}); }
-    host.innerHTML = sheetHTML({photos});
+    host.innerHTML = sheetHTML({photos: await loadSheetPhotos()});
     try{ await document.fonts.ready; }catch(_){}
     await Promise.all($$("img",host).map(im=> im.complete ? null : new Promise(res=>{ im.onload=im.onerror=res; })));
     const { jsPDF } = window.jspdf;
@@ -2724,16 +2849,61 @@ $("#btn-pdf").addEventListener("click", async ()=>{
     }
     const blob = pdf.output("blob");
     host.innerHTML = "";
-    const name = (S.docNo||"lifting-plan").replace(/[^\w฀-๿.-]+/g,"-") + ".pdf";
+    const name = (S.docNo||"lifting-plan").replace(/[^\w\u0E00-\u0E7F.-]+/g,"-") + ".pdf";
     toast(await saveFile(blob, name)==="claude" ? "ส่งไฟล์ PDF แล้ว" : "ดาวน์โหลด PDF แล้ว");
   }catch(e){
     const code = e && e.code;
     if(code==="declined") toast("ยกเลิกการบันทึก PDF");
     else if(code==="rate_limited") toast("มีหน้าต่างบันทึกเปิดอยู่ ลองอีกครั้งในอีกสักครู่");
     else if(code==="lib") toast("ตัวสร้าง PDF ยังโหลดไม่เสร็จ ลองอีกครั้ง");
-    else if(["unavailable","not_granted","capability_disabled","capability_removed","extension_not_enabled"].includes(code)){ toast("มุมมองนี้บันทึกไฟล์ไม่ได้"); btn.hidden=true; }
+    else if(["unavailable","not_granted","capability_disabled","capability_removed","extension_not_enabled"].includes(code)){ toast("มุมมองนี้บันทึกไฟล์ไม่ได้"); $("#btn-pdf").hidden = true; $("#pv-pdf").hidden = true; }
     else toast("สร้าง PDF ไม่สำเร็จ ลองอีกครั้ง");
-  }finally{ host.innerHTML = ""; btn.disabled = false; lbl.textContent = old; }
+  }finally{ host.innerHTML = ""; btn.disabled = false; lbl.textContent = old; pdfBusy = false; }
+}
+$("#btn-pdf").addEventListener("click", ()=>makePDF($("#btn-pdf")));
+$("#pv-pdf").addEventListener("click", ()=>makePDF($("#pv-pdf")));
+
+/* ---------- print preview: the same pages the PDF is made from ---------- */
+function fitPreview(){
+  const body = $("#pv-body"), zoom = body.classList.contains("zoom");
+  const cs = getComputedStyle(body), avail = body.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const k = zoom ? 1 : Math.min(1, avail/794);
+  $$(".pv-page", body).forEach(pg=>{ pg.style.width = (794*k)+"px"; pg.style.height = (1123*k)+"px"; pg.firstElementChild.style.transform = `scale(${k})`; });
+}
+async function openPreview(){
+  const body = $("#pv-body"), box = $("#pv-pages"), zb = $("#pv-zoom");
+  body.classList.remove("zoom"); zb.setAttribute("aria-pressed","false"); zb.textContent = "ขยายเต็มขนาด";
+  $("#pv-pdf").hidden = !pdfMode;
+  $("#pv-print").hidden = pdfMode!=="browser";   // inside Claude the page cannot open the print dialog
+  $("#pv-count").textContent = "";
+  const pill = $("#hdr-pill"), ready = $("#v-ready");
+  $("#pv-status").innerHTML = `<span class="pill" data-tone="${pill.dataset.tone||"idle"}"><span class="dot"></span>${esc($("#hdr-pill-text").textContent)}</span><span class="chip" data-tone="${ready.dataset.tone||"idle"}">${esc(ready.textContent)}</span><span>ตรวจทุกหน้าให้ครบก่อนดาวน์โหลด PDF ไปพิมพ์</span>`;
+  box.innerHTML = `<div class="pv-wait">กำลังจัดหน้า…</div>`;
+  openDlg("dlg-preview");
+  let photos = [];
+  try{ photos = await loadSheetPhotos(); }catch(_){}
+  const tmp = document.createElement("div"); tmp.innerHTML = sheetHTML({photos});
+  const sheets = Array.from(tmp.children).filter(x=>x.classList.contains("sheet"));
+  box.innerHTML = "";
+  sheets.forEach((sh,i)=>{
+    const w = document.createElement("div"); w.className = "pv-page" + (i===sheets.length-1 ? " last" : ""); w.setAttribute("role","img"); w.setAttribute("aria-label", `หน้า ${i+1} จาก ${sheets.length}`); w.appendChild(sh); box.appendChild(w);
+    const n = document.createElement("div"); n.className = "pv-no"; n.textContent = `หน้า ${i+1} / ${sheets.length}`; box.appendChild(n);
+  });
+  $("#pv-count").textContent = `· ${sheets.length} หน้า`;
+  fitPreview();
+}
+$("#btn-preview").addEventListener("click", openPreview);
+$("#pv-zoom").addEventListener("click", ()=>{
+  const body = $("#pv-body"), on = !body.classList.contains("zoom");
+  body.classList.toggle("zoom", on); $("#pv-zoom").setAttribute("aria-pressed", String(on)); $("#pv-zoom").textContent = on ? "ย่อให้พอดีจอ" : "ขยายเต็มขนาด";
+  fitPreview();
+});
+window.addEventListener("resize", ()=>{ if(!$("#dlg-preview").hidden) fitPreview(); });
+$("#pv-print").addEventListener("click", ()=>{
+  document.body.classList.add("pv-printing");
+  const done = ()=>{ document.body.classList.remove("pv-printing"); window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  try{ window.print(); }catch(_){ done(); toast("เบราว์เซอร์นี้พิมพ์ตรงไม่ได้ ให้ดาวน์โหลด PDF แล้วพิมพ์"); }
 });
 
 const ymd = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -3180,7 +3350,12 @@ const HELP = {
   hookH:{no:"5.2", src:"Spec ของเครน หรือยกตะขอขึ้นสุดแล้ววัดด้วยเลเซอร์", how:"วัดจากพื้นถึงปากตะขอเมื่อยกขึ้นสุด"},
   obstH:{no:"5.3", src:"เดินสำรวจเส้นทางจากจุดยกถึงจุดวาง", how:"ความสูงของสิ่งที่สูงที่สุดที่ชิ้นงานต้องข้าม เช่น เครื่องจักร ราวกันตก ท่อ · เลี่ยงเส้นทางที่ผ่านเหนือคนทำงาน", ref:"S-320 E"},
   clearReq:{no:"5.4", src:"มาตรฐานของบริษัท", how:"ระยะว่างใต้ชิ้นงานตอนข้ามสิ่งกีดขวาง โปรแกรมตั้งไว้ 0.5 m ให้ปรับตามมาตรฐานบริษัท"},
-  loadHt:{no:"5.5", src:"แบบชิ้นงาน หรือวัดจริง", how:"วัดจากจุดล่างสุดของชิ้นงานถึงจุดยก (Lifting lug) ด้านบน"},
+  loadHt:OH=>({no: OH ? "5.5 · 2.9" : "2.9", src:"แบบชิ้นงาน หรือวัดจริง", how:"วัดจากจุดล่างสุดของชิ้นงานถึงจุดยก (Lifting lug) ด้านบน" + (OH ? " · ช่องนี้ใช้ร่วมกันทั้งในส่วนที่ 2 (ขนาดชิ้นงาน) และส่วนที่ 5 (ระยะยก)" : " · เป็นส่วนหนึ่งของขนาดชิ้นงานที่แผนการยกต้องมี"), ref:"กฎกระทรวงปั้นจั่น 2564 ข้อ 85(5)"}),
+  dimW:{no:"2.9", src:"แบบชิ้นงาน, Data sheet หรือวัดจริง", how:"ขนาดภายนอกของชิ้นงาน กว้าง × ยาว × สูง เป็นเมตร ใช้วางเส้นทางยก ระยะห่าง และเขตกั้น", ref:"กฎกระทรวงปั้นจั่น 2564 ข้อ 85(5)"},
+  dimL:{no:"2.9", src:"แบบชิ้นงาน, Data sheet หรือวัดจริง", how:"ขนาดภายนอกของชิ้นงาน กว้าง × ยาว × สูง เป็นเมตร ใช้วางเส้นทางยก ระยะห่าง และเขตกั้น", ref:"กฎกระทรวงปั้นจั่น 2564 ข้อ 85(5)"},
+  cog:{no:"2.10", src:"แบบชิ้นงาน, Data sheet หรือคำนวณ", how:"ระบุตำแหน่งจุดศูนย์ถ่วงเทียบกับชิ้นงาน เช่น กึ่งกลาง สูงจากฐาน 0.9 ม. · ตะขอต้องอยู่เหนือจุดศูนย์ถ่วงพอดี ไม่อย่างนั้นชิ้นงานจะเอียงตอนยกขึ้น · ถ้าจุดศูนย์ถ่วงอาจเปลี่ยนระหว่างยก ให้ติ๊กในส่วนที่ 6", ref:"กฎกระทรวงปั้นจั่น 2564 ข้อ 85(5)"},
+  cogShift:{no:"6.5", src:"แบบหรือข้อมูลชิ้นงาน", how:"ติ๊กเมื่อมีของเหลว ของในภาชนะ หรือชิ้นส่วนที่เลื่อนได้ ทำให้จุดศูนย์ถ่วงเปลี่ยนตอนยก · ถ้าติ๊ก กฎหมายกำหนดให้ต้องมีแผนการยกเป็นหนังสือ", ref:"กฎกระทรวงปั้นจั่น 2564 ข้อ 84(4)"},
+  hazLoad:{no:"6.5", src:"SDS หรือข้อมูลชิ้นงาน", how:"ติ๊กเมื่อของที่ยกอาจระเบิดหรือก่ออุบัติเหตุร้ายแรง เช่น ถังแก๊ส ภาชนะรับแรงดัน สารเคมีอันตราย · ถ้าติ๊ก กฎหมายกำหนดให้ต้องมีแผนการยกเป็นหนังสือ", ref:"กฎกระทรวงปั้นจั่น 2564 ข้อ 84(5)"},
   outMode:{no:"5.1", src:"ตารางหรือโปรแกรมแรงกดขาค้ำของผู้ผลิต", how:"มีค่าจากผู้ผลิตให้เลือก “ค่าจากผู้ผลิต” · ถ้าไม่มี ระบบประมาณ 75% ของ (น้ำหนักปั้นจั่น + น้ำหนักรวม) ใช้วางแผนเบื้องต้นเท่านั้น"},
   outManual:{no:"5.1", src:"ผู้ผลิตหรือผู้ให้เช่าปั้นจั่น (โปรแกรมคำนวณแรงกดขาค้ำ)", how:"กรอกแรงกดของขาที่รับหนักที่สุด หน่วย kg (ตัน × 1,000)"},
   padW:{no:"5.2", src:"วัดแผ่นรองที่จะใช้จริง", how:"แผ่นรองใต้ขาค้ำหนึ่งขา พื้นที่ = กว้าง × ยาว · แผ่นใหญ่ขึ้น แรงกดบนพื้นลดลง"},
@@ -3188,9 +3363,9 @@ const HELP = {
   ground:{no:"5.5", src:"วิศวกรโยธา, ผลเจาะสำรวจดิน, แบบพื้นคอนกรีต", how:"หน่วยตัน/ตร.ม. ผู้ประสานงานยกเป็นผู้ประเมิน · สำรวจหรือขุดตรวจให้เสร็จก่อน ระวังท่อและบ่อใต้ดิน", ref:"S-320 I.D"},
   wind: OH=>({no: OH?"5.8":"5.7", src:"เครื่องวัดลม (Anemometer) ที่ระดับความสูงงาน หรือจอแสดงผลของปั้นจั่น", how:"วัดในวันยกก่อนเริ่มงาน หน่วย ม./วินาที (กม./ชม. ÷ 3.6)", ref:"เอกสารแนบ 2 ข้อ 1"}),
   windLim: OH=>({no: OH?"5.9":"5.8", src:"คู่มือปั้นจั่น / คู่มือเครน", how:"ใช้ค่าที่ต่ำกว่าระหว่างคู่มือกับค่าที่คนคุมเชือกประคองยังควบคุมชิ้นงานได้ · ชิ้นงานที่มีพื้นที่รับลมมากควรใช้ค่าต่ำลง", ref:"S-320 E"}),
-  kV:{no:"6.2", src:"ป้ายที่เสาไฟ, การไฟฟ้า หรือฝ่ายไฟฟ้าโรงงาน", how:"ระบบคำนวณระยะขั้นต่ำให้: ไม่เกิน 50 kV = 3 m · เกิน 50 kV เพิ่ม 1 cm ต่อ 1 kV · ไม่แน่ใจให้ถามฝ่ายไฟฟ้า ห้ามเดา", ref:"S-320 E"},
+  kV:{no:"6.2", src:"ป้ายที่เสาไฟ, การไฟฟ้า หรือฝ่ายไฟฟ้าโรงงาน", how:"ระบบใช้ค่าที่มากกว่าระหว่าง <b>S-320</b> (ไม่เกิน 50 kV = 3 m · เกิน 50 kV เพิ่ม 1 cm ต่อ 1 kV) กับ<b>กฎกระทรวงข้อ 68</b> (ไม่เกิน 69 kV = 3.1 m · ไม่เกิน 115 kV = 3.3 m · ไม่เกิน 230 kV = 4 m · ไม่เกิน 500 kV = 6 m) · ถ้าเว้นระยะตามกฎหมายไม่ได้ ต้องมีมาตรการความปลอดภัยและขออนุญาตการไฟฟ้าในพื้นที่ก่อน · ไม่แน่ใจแรงดันให้ถามฝ่ายไฟฟ้า ห้ามเดา", ref:"S-320 E · กฎกระทรวงปั้นจั่น 2564 ข้อ 68"},
   "sigs.r1.name":{t:"ผู้ทบทวนคนที่ 1", no:"10", src:"ผู้บังคับปั้นจั่นที่จะยกงานนี้", how:"กรอกข้อมูลและคำนวณแผนนี้ แล้วลงนามหลังตรวจครบทุกส่วน · งานยกทั่วไป (ไม่ใช่ Critical lift) ลงนามคนเดียวได้", ref:"S-320 II.B"},
-  "sigs.r2.name":{t:"ผู้ทบทวนคนที่ 2", no:"10", src:"ผู้ประสานงานยก / หัวหน้างาน (ผู้ควบคุมการใช้ปั้นจั่น) ที่ไม่ใช่คนที่ 1", how:"ต้อง<b>คำนวณแยกเอง</b>โดยไม่ลอกจากคนที่ 1 แล้วนำผลมาเทียบ ถ้าต่างกันต้องแก้ให้ตรงก่อน แนบการคำนวณไว้กับแผน · บังคับเฉพาะ Critical lift", ref:"S-320 II.B"},
+  "sigs.r2.name":{t:"ผู้ทบทวนคนที่ 2", no:"10", src:"ผู้ประสานงานยก / หัวหน้างาน (ผู้ควบคุมการใช้ปั้นจั่น) ที่ไม่ใช่คนที่ 1", how:"ต้อง<b>คำนวณแยกเอง</b>โดยไม่ลอกจากคนที่ 1 แล้วนำผลมาเทียบ ถ้าต่างกันต้องแก้ให้ตรงก่อน แนบการคำนวณไว้กับแผน · บังคับเฉพาะ Critical lift · <b>ปั้นจั่นเคลื่อนที่และ Boom truck:</b> คนนี้เป็นผู้จัดทำแผนตามกฎกระทรวงข้อ 85 ต้องเป็นผู้ควบคุมการใช้ปั้นจั่นที่ผ่านการอบรม และต้องลงนามทุกครั้งที่เข้าเงื่อนไขข้อ 84 แม้ไม่เป็น Critical lift", ref:"S-320 II.B · กฎกระทรวงปั้นจั่น 2564 ข้อ 85"},
   "sigs.nw.name":{t:"ตัวแทน NatureWorks", no:"10", src:"เจ้าของพื้นที่ ผู้จัดการฝ่ายซ่อมบำรุง หรือผู้ที่ได้รับมอบหมาย", how:"อนุมัติใบอนุญาตงานยกร่วมกับ Safe Work Permit หลังผู้ทบทวนทั้ง 2 คนลงนามแล้ว · บังคับเฉพาะ Critical lift", ref:"S-320 II.B"},
   powerDist:{no:"6.3", src:"วัดหน้างาน หรือวัดจากแบบ", how:"ระยะใกล้สุดระหว่างสายไฟกับส่วนใดก็ได้ของปั้นจั่น สลิง หรือของที่ยก ตลอดการยก รวมตอนสวิงและตอนยกบูม", ref:"S-320 E"},
 };
