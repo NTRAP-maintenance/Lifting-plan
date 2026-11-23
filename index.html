@@ -596,6 +596,29 @@ table.plc td.h{background:#FAE1DF;color:#C92D2D;font-weight:700;border:2.5px sol
 .dlg-body{padding:14px 18px 16px;overflow:auto;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
 .dlg-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface)}
 .dlg-foot .sp{flex:1}
+/* load chart from PDF */
+.dlg.pdi .dlg-card{max-width:960px;height:min(94vh,1200px);max-height:none}
+.dpf-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dpf-bar .sp{flex:1}
+.dpf-name{font-size:13px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46ch}
+.dpf-nav{display:inline-flex;align-items:center;gap:6px}
+.dpf-msg{margin:0;font-size:13.5px;color:var(--muted)}
+.dpf-msg[data-tone="bad"]{color:var(--bad);font-weight:600}
+.dpf-msg[data-tone="ok"]{color:var(--ink)}
+.dpf-stage{position:relative;align-self:center;flex:none;line-height:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
+.dpf-stage canvas{display:block}
+.dpf-sel{position:absolute;border:2px solid var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent);pointer-events:none}
+.dpf-res{display:flex;flex-direction:column;gap:8px}
+.dpf-res .chart-wrap{max-height:none}
+.dpf-pg{display:inline-flex;align-items:center;gap:4px;font-size:13px}
+.dpf-pg input{width:56px;height:32px;padding:0 6px;text-align:center}
+.dpf-keys{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.le-src{margin:6px 0 0;display:flex;flex-direction:column;gap:4px}
+.le-src .le-srcbox{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:6px;background:#fff}
+.le-src img{display:block;max-width:100%;cursor:zoom-in}
+.le-src.zoom img{max-width:none;width:220%;cursor:zoom-out}
+.le-src figcaption{font-size:12px;color:var(--muted)}
+@media (max-width:700px){.dlg.pdi .dlg-card{height:94vh}}
 /* print preview */
 .dlg.pv .dlg-card{max-width:900px;height:min(94vh,1240px);max-height:none}
 .dlg.pv .dlg-head h3 small{font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
@@ -994,6 +1017,7 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
               <div class="lib-row"><select id="f-lib" data-k="libId"></select><button class="btn sm" type="button" id="btn-lib">จัดการคลัง</button></div>
               <span class="hint" id="lib-hint"></span>
             </div>
+            <div class="field" id="fld-bang" hidden><label for="f-bang">มุมบูมบนหน้าจอปั้นจั่น (ถ้าทราบ)</label><div class="input"><input type="number" id="f-bang" data-k="boomAng" inputmode="decimal" step="0.1" min="0" max="90"><span class="unit">°</span></div><span class="hint" id="bang-hint"></span></div>
           </div>
         </div>
         <div class="grp" id="manual-grp">
@@ -1292,6 +1316,21 @@ textarea.note-in{width:100%;min-height:70px;border:1px solid var(--line);border-
     <div class="dlg-foot"><button class="btn sm" type="button" id="pv-zoom" aria-pressed="false">ขยายเต็มขนาด</button><span class="sp"></span><button class="btn sm" type="button" data-close>กลับไปแก้</button><button class="btn sm" type="button" id="pv-print" hidden>พิมพ์</button><button class="btn primary sm" type="button" id="pv-pdf"><span class="lbl">ดาวน์โหลด PDF</span></button></div>
   </div>
 </div>
+<div class="dlg wide pdi" id="dlg-pdf" role="dialog" aria-modal="true" aria-labelledby="dpf-title" hidden>
+  <div class="dlg-card">
+    <div class="dlg-head"><h3 id="dpf-title">นำเข้า load chart จาก PDF</h3><button class="dlg-x" type="button" data-close aria-label="ปิด">×</button></div>
+    <div class="dlg-body">
+      <div class="dpf-bar"><button class="btn sm" type="button" id="dpf-file">เลือกไฟล์ PDF</button><span class="dpf-name" id="dpf-name"></span>
+        <span class="sp"></span><span class="dpf-nav" id="dpf-nav" hidden><button class="btn sm" type="button" id="dpf-prev" aria-label="หน้าก่อน">‹</button><label class="dpf-pg"><span>หน้า</span><input type="number" id="dpf-pg" inputmode="numeric" min="1" aria-label="ไปที่หน้า"><span class="mono" id="dpf-pageno"></span></label><button class="btn sm" type="button" id="dpf-next" aria-label="หน้าถัดไป">›</button></span></div>
+      <p class="dpf-msg" id="dpf-msg">เลือกไฟล์ load chart ของผู้ผลิต (PDF ที่เลือกตัวหนังสือได้)</p>
+      <div class="dpf-bar" id="dpf-tools" hidden><button class="btn sm" type="button" id="dpf-all" disabled>อ่านทั้งหน้า</button><button class="btn sm" type="button" id="dpf-read" disabled>อ่านในกรอบอีกครั้ง</button></div>
+      <div class="dpf-stage" id="dpf-stage" hidden><canvas id="dpf-canvas"></canvas><div class="dpf-sel" id="dpf-sel" hidden></div></div>
+      <div class="dpf-res" id="dpf-res"></div>
+    </div>
+    <div class="dlg-foot"><span class="sp"></span><button class="btn sm" type="button" data-close>ยกเลิก</button><button class="btn primary sm" type="button" id="dpf-use" disabled>ใช้ตารางนี้</button></div>
+  </div>
+</div>
+<input type="file" id="dpf-in" accept="application/pdf,.pdf" hidden>
 <input type="file" id="import-in" accept=".json,application/json" hidden>
 <div id="review" hidden></div>
 <div id="sheet-host" aria-hidden="true"></div>
@@ -1487,7 +1526,7 @@ const BASE = {
   powerNear:false, kV:"", powerDist:"",
   // กฎกระทรวงปั้นจั่น 2564: load size and CoG (ข้อ 85(5)), plan triggers the app cannot see (ข้อ 84(4)(5)).
   // Lifting steps (ข้อ 85(8)) are in the separate Method Statement attached to the plan.
-  dimW:"", dimL:"", cog:"", cogShift:"", hazLoad:"",
+  dimW:"", dimL:"", cog:"", cogShift:"", hazLoad:"", boomAng:"",
   cl:{}, calcMatch:false,
   btKind:"tele", libId:"", libChart:null, photos:[],
   sigs:{r1:{name:"",img:null,at:null}, r2:{name:"",img:null,at:null}, nw:{name:"",img:null,at:null}},
@@ -1579,6 +1618,7 @@ function blankPlan(type){
   const p = mk({craneType:type, date:todayISO(), docNo:nextDocNo(), wSrc:"B"});
   if(type==="overhead") p.windLim = "";
   if(type==="boomtruck") p.capMode = "manual";
+  if(type==="mobile") p.capMode = "lib";          // a new plan starts from a real chart; the demo chart stays selectable for practice
   return p;
 }
 function initStore(){
@@ -1661,15 +1701,29 @@ function thDateTime(ts){ const d=new Date(ts); return d.toLocaleDateString("th-T
 const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const DEMO = Object.assign({id:"demo", name:"Load chart สาธิต ปั้นจั่น 50 ตัน", kind:"mobile", unit:"t", note:"ข้อมูลสาธิต ใช้สอนวิธีอ่านเท่านั้น", source:""}, LC);
-// Reads a chart the conservative way: next longer boom column, next farther radius row.
-function lookupChart(ch, L, R){
+// Rows of a chart are radii (m) or, for some models, boom angles (°). `radii` holds the row values either way; `axis` says which.
+const chAngle = ch => !!ch && ch.axis==="angle" && ch.kind!=="knuckle";
+const rowTxt = (ch, v, th) => chAngle(ch) ? `มุม ${v}°` : `รัศมี ${v} ${th===false?"m":"ม."}`;
+const rowCell = (ch, v, th) => chAngle(ch) ? `${v}°` : `${v} ${th===false?"m":"ม."}`;
+const rowWord = ch => chAngle(ch) ? "มุมบูม" : "รัศมี";
+// Reads a chart the conservative way: next longer boom column, and the next farther radius row
+// (radius chart) or the next lower boom-angle row (angle chart: a lower angle reaches farther and lifts less).
+function lookupChart(ch, L, R, angUse){
   const kn = ch.kind==="knuckle";
   const bi = kn ? 0 : ch.booms.findIndex(b => b >= L - 1e-9);
   if(bi<0) return {err:"บูมยาวเกินกว่าที่มีใน load chart"};
-  const ri = ch.radii.findIndex(r => r >= R - 1e-9);
-  if(ri<0) return {err:"รัศมีไกลเกินกว่าที่มีใน load chart", bi};
+  let ri;
+  if(chAngle(ch)){
+    if(!(R < L)) return {err:"รัศมีต้องน้อยกว่าความยาวบูม", bi};
+    const th = angUse!=null ? angUse : Math.acos(R/L)*180/Math.PI;
+    ri = -1; ch.radii.forEach((a,i)=>{ if(a <= th + 1e-9) ri = i; });
+    if(ri<0) return {err:`มุมบูม ${th.toFixed(1)}° ต่ำกว่ามุมต่ำสุดใน load chart`, bi};
+  } else {
+    ri = ch.radii.findIndex(r => r >= R - 1e-9);
+    if(ri<0) return {err:"รัศมีไกลเกินกว่าที่มีใน load chart", bi};
+  }
   const v = ch.cap[ri] ? ch.cap[ri][bi] : null;
-  if(v==null) return {err: kn ? `ไม่มีพิกัดยกที่รัศมี ${ch.radii[ri]} ม.` : `ไม่มีพิกัดยกที่บูม ${ch.booms[bi]} ม. รัศมี ${ch.radii[ri]} ม.`, bi, ri};
+  if(v==null) return {err: kn ? `ไม่มีพิกัดยกที่รัศมี ${ch.radii[ri]} ม.` : `ไม่มีพิกัดยกที่บูม ${ch.booms[bi]} ม. ${rowTxt(ch, ch.radii[ri])}`, bi, ri};
   return {cap:v, bi, ri};
 }
 const chartMul = ch => (ch && ch.unit==="kg") ? 1 : 1000;
@@ -1704,11 +1758,14 @@ function compute(s){
   r.manual = mode==="manual";
   r.chart = mode==="chart" ? DEMO : (mode==="lib" && s.libChart && Array.isArray(s.libChart.radii) && s.libChart.radii.length ? s.libChart : null);
   r.chartKindBad = !!(mode==="lib" && r.chart && r.chart.kind!==planKind(s));
+  // angle chart: cos⁻¹(radius ÷ boom) ignores the boom-foot offset, so a lower angle read on the crane's display wins
+  r.bAng = num(s.boomAng);
+  r.angUse = (!r.KN && chAngle(r.chart) && r.ang!=null) ? (r.bAng>0 ? Math.min(r.bAng, r.ang) : r.ang) : null;
   const geomIn = r.KN ? r.R>0 : (r.L>0 && r.R>0);
   if(r.manual) r.lk = {};
   else if(!r.chart) r.lk = {err:"เลือกปั้นจั่นจากคลัง load chart", nochart:true};
   else if(r.chartKindBad) r.lk = {err:`Load chart ที่เลือกเป็นของ${KIND_TXT[r.chart.kind]||"ปั้นจั่นชนิดอื่น"} ไม่ตรงกับชนิดบูม`};
-  else r.lk = geomIn ? lookupChart(r.chart, r.L, r.R) : {err: r.KN ? "กรอกรัศมี" : "กรอกความยาวบูมและรัศมี"};
+  else r.lk = geomIn ? lookupChart(r.chart, r.L, r.R, r.angUse) : {err: r.KN ? "กรอกรัศมี" : "กรอกความยาวบูมและรัศมี"};
   r.dirs = {rear:num(s.capRear), front:num(s.capFront), side:num(s.capSide)};
   const dv = Object.values(r.dirs).filter(v=>v>0);
   r.swlC=num(s.swlCrane); r.swlH=num(s.swlHoist);
@@ -1786,6 +1843,9 @@ function compute(s){
     else { tone="ok"; meta="น้อยกว่า 95% ยกได้ตาม S-320"; }
     C.push({id:"cap", label:OH?"พิกัดยกเครน":"พิกัดยกปั้นจั่น", val:pctTxt, meta, tone});
   }
+  // the demo chart is for practice only: a real lift must be checked against the chart of the crane on site (กฎกระทรวงข้อ 85)
+  r.demoChart = !OH && r.capMode==="chart" && !s.isExample;
+  if(r.demoChart) C.push({id:"lcdemo", label:"Load chart", val:"สาธิต", meta:"ใช้ load chart สาธิตอยู่ ก่อนยกจริงต้องเปลี่ยนเป็น load chart ของปั้นจั่นคันที่ยก (กฎกระทรวงข้อ 85)", tone:"warn"});
   {
     let tone, meta, val="—";
     if(r.sr.err){ tone="bad"; meta=r.sr.err; val = r.sr.mode==="none" ? "ห้ามใช้" : "—"; }
@@ -1909,7 +1969,7 @@ function compute(s){
   r.clDone = r.clAnswered===r.clTotal && r.clNo===0;
 
   // ---- verdict ----
-  const evalIds = ["cap","sling","angle","shackle","ground","head","wind","insp","train","power"];
+  const evalIds = ["cap","lcdemo","sling","angle","shackle","ground","head","wind","insp","train","power"];
   const blockers = C.filter(c=>evalIds.includes(c.id) && c.tone==="bad");
   const idles = C.filter(c=>evalIds.includes(c.id) && c.tone==="idle");
   let verdict;
@@ -1934,7 +1994,7 @@ function compute(s){
   C.push({id:"sign", label:"ทวนสอบและอนุมัติ", val:`${r.sigDone}/${r.sigReq.length}`, meta: r.sigStale.some(id=>r.sigReq.includes(id)) ? "แก้แผนหลังลงนาม ต้องลงนามใหม่" : r.sigDone<r.sigReq.length ? "ยังลงนามไม่ครบ" : (!r.matchOk ? "ยังไม่ยืนยันผลคำนวณตรงกัน" : "ครบ"), tone: (r.sigDone===r.sigReq.length && r.matchOk) ? "ok" : "warn"});
   r.checks = C;
 
-  r.ready = (verdict==="normal"||verdict==="critical") && idles.length===0 && r.clDone && r.sigDone===r.sigReq.length && r.matchOk && !r.lawMissing.length;
+  r.ready = (verdict==="normal"||verdict==="critical") && idles.length===0 && r.clDone && r.sigDone===r.sigReq.length && r.matchOk && !r.lawMissing.length && !r.demoChart;
 
   const reasons = [];
   if(verdict==="pending") reasons.push({tone:"idle", text:"กรอกน้ำหนักชิ้นงานและข้อมูลปั้นจั่น"});
@@ -2252,12 +2312,12 @@ function buildUI(){
 let lcKey = "";
 function chartTableHTML(ch){
   const mul = chartMul(ch), kn = ch.kind==="knuckle";
-  let t = `<thead><tr><th scope="col">${kn?"รัศมี":"รัศมี \\ บูม"}</th>${kn ? `<th scope="col" data-col="0">พิกัด (kg)</th>` : ch.booms.map((b,i)=>`<th scope="col" data-col="${i}">${(+b).toFixed(1)} ม.</th>`).join("")}</tr></thead><tbody>`;
-  ch.radii.forEach((rad,ri)=>{ const row = ch.cap[ri]||[]; const cols = kn ? 1 : ch.booms.length; let cells = ""; for(let bi=0; bi<cols; bi++){ const v = row[bi]; cells += `<td data-col="${bi}" class="${v==null?"na":""}">${v==null?"–":kg(v*mul)}</td>`; } t += `<tr data-row="${ri}"><th scope="row">${rad} ม.</th>${cells}</tr>`; });
+  let t = `<thead><tr><th scope="col">${kn?"รัศมี":rowWord(ch)+" \\ บูม"}</th>${kn ? `<th scope="col" data-col="0">พิกัด (kg)</th>` : ch.booms.map((b,i)=>`<th scope="col" data-col="${i}">${(+b).toFixed(1)} ม.</th>`).join("")}</tr></thead><tbody>`;
+  ch.radii.forEach((rad,ri)=>{ const row = ch.cap[ri]||[]; const cols = kn ? 1 : ch.booms.length; let cells = ""; for(let bi=0; bi<cols; bi++){ const v = row[bi]; cells += `<td data-col="${bi}" class="${v==null?"na":""}">${v==null?"–":kg(v*mul)}</td>`; } t += `<tr data-row="${ri}"><th scope="row">${rowCell(ch, rad)}</th>${cells}</tr>`; });
   return t + `</tbody>`;
 }
 function renderLC(ch){
-  const key = ch ? [ch.id, ch.rev||"", ch.unit, ch.kind, ch.radii.length, ch.booms.length].join("|") : "";
+  const key = ch ? [ch.id, ch.rev||"", ch.unit, ch.kind, ch.axis||"", ch.radii.length, ch.booms.length].join("|") : "";
   if(key===lcKey) return; lcKey = key;
   $("#lc").innerHTML = ch ? chartTableHTML(ch) : "";
 }
@@ -2356,6 +2416,12 @@ function render(){
   } else {
     $("#manual-grp").hidden = !r.manual;
     $("#lib-grp").hidden = r.capMode!=="lib";
+    const angCh = r.capMode==="lib" && !r.KN && chAngle(r.chart);
+    $("#fld-bang").hidden = !angCh;
+    if(angCh) $("#bang-hint").textContent = r.ang==null ? "load chart นี้แบ่งแถวตามมุมบูม กรอกความยาวบูมและรัศมีก่อน"
+      : r.bAng>0 && r.bAng < r.ang ? `ใช้มุมบนหน้าจอ ${r.bAng.toFixed(1)}° เพราะต่ำกว่ามุมคำนวณ ${r.ang.toFixed(1)}°`
+      : r.bAng>0 ? `มุมคำนวณ ${r.ang.toFixed(1)}° ต่ำกว่ามุมบนหน้าจอ ระบบใช้มุมคำนวณ ตรวจความยาวบูมและรัศมีอีกครั้ง`
+      : `มุมคำนวณจากรัศมี ÷ ความยาวบูม = ${r.ang.toFixed(1)}° ไม่รวมระยะจุดหมุนบูม ถ้ามุมบนหน้าจอปั้นจั่นต่ำกว่า ให้กรอกไว้ ระบบจะใช้มุมที่ต่ำกว่า`;
     $("#fld-boom").hidden = r.KN;
     $("#ro-angP").hidden = $("#ro-angS").hidden = r.KN;
     renderLibSelect();
@@ -2365,7 +2431,7 @@ function render(){
     $("#o-cap").innerHTML = r.cap>0 ? `${kg(r.cap)}<small>kg</small>` : "—";
     let capNote = "";
     if(r.manual){ const d=r.dirs, mins=Object.entries(d).filter(([,v])=>v>0); capNote = mins.length ? `ค่าต่ำสุดจาก ${mins.map(([k])=>({rear:"หลัง",front:"หน้า",side:"ข้าง"})[k]).join(" / ")}` : "กรอกพิกัดอย่างน้อย 1 ทิศ"; }
-    else if(r.lk.cap!=null) capNote = (r.KN ? `แถวรัศมี ${r.chart.radii[r.lk.ri]} ม.` : `ช่องบูม ${(+r.chart.booms[r.lk.bi]).toFixed(1)} ม. × รัศมี ${r.chart.radii[r.lk.ri]} ม.`) + (r.capMode==="lib" ? ` · ${r.chart.name}` : "");
+    else if(r.lk.cap!=null) capNote = (r.KN ? `แถวรัศมี ${r.chart.radii[r.lk.ri]} ม.` : `ช่องบูม ${(+r.chart.booms[r.lk.bi]).toFixed(1)} ม. × ${rowTxt(r.chart, r.chart.radii[r.lk.ri])}` + (r.angUse!=null ? ` (${(r.bAng>0 && r.bAng < r.ang ? `มุมบนหน้าจอ ${r.bAng.toFixed(1)}°` : `มุมคำนวณ ${r.ang.toFixed(1)}°`)})` : "")) + (r.capMode==="lib" ? ` · ${r.chart.name}` : "");
     else capNote = r.lk.err || "";
     $("#o-cap-n").textContent = capNote;
     $("#o-cap95").innerHTML = r.cap95 ? `${kg(r.cap95)}<small>kg</small>` : "—";
@@ -2377,12 +2443,12 @@ function render(){
       $("#range-cfg").textContent = r.chart ? (r.capMode==="chart" ? "Load chart สาธิต" : r.chart.name) : "บูมที่กรอก";
       $("#range-cap").textContent = r.ang!=null ? `เส้นแดง = บูม ${f1(r.L)} ม. · จุดแดง = รัศมี ${f1(r.R)} ม. ปลายบูมสูงประมาณ ${f1(r.tipH)} ม. มุมบูม ${r.ang.toFixed(1)}° · ความสูงจุดหมุนบูมคิด ${f1(r.ph)} ม.` : "รัศมีต้องน้อยกว่าความยาวบูม จึงจะวางจุดยกบนกราฟได้";
     }
-    $("#lc-cfg").textContent = (r.chart && r.lk && r.lk.cap!=null) ? (r.KN ? `แถวรัศมี ${r.chart.radii[r.lk.ri]} ม. = ${kg(r.lk.cap*chartMul(r.chart))} kg` : `ช่องบูม ${(+r.chart.booms[r.lk.bi]).toFixed(1)} ม. × รัศมี ${r.chart.radii[r.lk.ri]} ม. = ${kg(r.lk.cap*chartMul(r.chart))} kg`) : "";
+    $("#lc-cfg").textContent = (r.chart && r.lk && r.lk.cap!=null) ? (r.KN ? `แถวรัศมี ${r.chart.radii[r.lk.ri]} ม. = ${kg(r.lk.cap*chartMul(r.chart))} kg` : `ช่องบูม ${(+r.chart.booms[r.lk.bi]).toFixed(1)} ม. × ${rowTxt(r.chart, r.chart.radii[r.lk.ri])} = ${kg(r.lk.cap*chartMul(r.chart))} kg`) : "";
     if(r.chart){
       renderLC(r.chart);
       $("#lc-note").textContent = r.capMode==="chart"
         ? "Load chart สาธิตของปั้นจั่น 50 ตัน (หน่วย kg) ใช้สอนวิธีอ่านเท่านั้น ระบบเลือกช่องที่บูมยาวกว่าและรัศมีไกลกว่าค่าที่กรอกเสมอ งานจริงให้เลือก “จากคลัง load chart” หรือ “กรอกพิกัดเอง”"
-        : `${r.chart.name}${r.chart.note?" · "+r.chart.note:""}${r.chart.source?" · แหล่งข้อมูล "+r.chart.source:""} · แสดงเป็น kg ระบบเลือก${r.KN?"แถวรัศมีที่ไกลกว่า":"ช่องบูมยาวกว่าและรัศมีไกลกว่า"}ค่าที่กรอกเสมอ`;
+        : `${r.chart.name}${r.chart.note?" · "+r.chart.note:""}${r.chart.source?" · แหล่งข้อมูล "+r.chart.source:""} · แสดงเป็น kg ระบบเลือก${r.KN?"แถวรัศมีที่ไกลกว่า":chAngle(r.chart)?"ช่องบูมยาวกว่าและแถวมุมบูมที่ต่ำกว่า":"ช่องบูมยาวกว่าและรัศมีไกลกว่า"}ค่าที่กรอกเสมอ`;
     }
     $$("#lc .col-on,#lc .row-on,#lc .hit").forEach(e=>e.classList.remove("col-on","row-on","hit"));
     if(!r.manual && r.lk.bi!=null){
@@ -2731,7 +2797,7 @@ function sheetHTML(opt){
           ${kv("รัศมี ยก / วาง", `${f1(r.Rp)} / ${f1(r.Rs)} m`)}
           ${r.KN ? "" : kv("มุมบูม ยก / วาง", `${r.angP!=null?r.angP.toFixed(1):"—"}° / ${r.angS!=null?r.angS.toFixed(1):"—"}°`)}
           ${r.manual ? kv("พิกัด หลัง / หน้า / ข้าง", `${kg(r.dirs.rear)} / ${kg(r.dirs.front)} / ${kg(r.dirs.side)}`)
-            : kv("Load chart", r.lk.cap!=null ? (r.KN ? `รัศมี ${r.chart.radii[r.lk.ri]} m` : `บูม ${(+r.chart.booms[r.lk.bi]).toFixed(1)} × รัศมี ${r.chart.radii[r.lk.ri]} m`) + (r.capMode==="chart" ? " (สาธิต)" : "") : "—")}
+            : kv("Load chart", r.lk.cap!=null ? (r.KN ? `รัศมี ${r.chart.radii[r.lk.ri]} m` : `บูม ${(+r.chart.booms[r.lk.bi]).toFixed(1)} × ${rowTxt(r.chart, r.chart.radii[r.lk.ri], false)}`) + (r.capMode==="chart" ? " (สาธิต)" : "") : "—")}
           ${r.capMode==="lib" && r.chart ? kv("ตารางที่ใช้", r.chart.name) : ""}
           ${kv("พิกัดยก / 95%", r.cap>0?`${kg(r.cap)} / ${kg(r.cap95)} kg`:"—","tot")}
         </div></section>`}
@@ -2993,11 +3059,11 @@ function chartTablePDF(ch, lk, maxRows){
   const MAXR = maxRows || 24;
   if(idx.length > MAXR){ const c = ri!=null ? ri : 0; const a = Math.max(0, Math.min(idx.length-MAXR, c - Math.floor(MAXR/2))); idx = idx.slice(a, a+MAXR); cut = true; }
   const last = idx[idx.length-1];
-  let h = `<table class="plc${cols<=2?" narrow":""}"><thead><tr><th>${kn?"รัศมี":"รัศมี \\ บูม"}</th>`;
+  let h = `<table class="plc${cols<=2?" narrow":""}"><thead><tr><th>${kn?"รัศมี":rowWord(ch)+" \\ บูม"}</th>`;
   for(let j=0;j<cols;j++) h += `<th class="${j===bi?"c":""}">${kn ? "พิกัด (kg)" : (+ch.booms[j]).toFixed(1)+" m"}</th>`;
   h += `</tr></thead><tbody>`;
   idx.forEach(i=>{
-    h += `<tr class="${i===ri?"r":""}"><th>${ch.radii[i]} m</th>`;
+    h += `<tr class="${i===ri?"r":""}"><th>${rowCell(ch, ch.radii[i], false)}</th>`;
     for(let j=0;j<cols;j++){ const v = (ch.cap[i]||[])[j]; const cls = [v==null?"na":"", j===bi?"c":"", (j===bi && i===last)?"cb":"", (i===ri && j===bi)?"h":""].filter(Boolean).join(" ");
       h += `<td class="${cls}">${v==null?"–":kg(v*mul)}</td>`; }
     h += `</tr>`;
@@ -3014,7 +3080,7 @@ function calcModel(r, s){
   if(r.OH) capExpr = `ค่าที่ต่ำกว่าระหว่าง เครน ${kg(r.swlC)} กับ รอก ${kg(r.swlH)}`;
   else if(r.manual){ const d = r.dirs, en = [["หลัง",d.rear],["หน้า",d.front],["ข้าง",d.side]].filter(([,v])=>v>0); capExpr = en.length ? `ค่าต่ำสุดของ ${en.map(([k,v])=>`${k} ${kg(v)}`).join(" / ")}` : "กรอกพิกัดจาก load chart อย่างน้อย 1 ทิศ"; }
   else if(r.lk && r.lk.cap!=null){ const ch = r.chart, v = r.lk.cap;
-    capExpr = (r.KN ? `load chart แถวรัศมี ${ch.radii[r.lk.ri]} m` : `load chart ช่องบูม ${(+ch.booms[r.lk.bi]).toFixed(1)} m × รัศมี ${ch.radii[r.lk.ri]} m`) + ` = ${v}${ch.unit==="kg" ? " kg" : " ตัน × 1,000"}`; }
+    capExpr = (r.KN ? `load chart แถวรัศมี ${ch.radii[r.lk.ri]} m` : `load chart ช่องบูม ${(+ch.booms[r.lk.bi]).toFixed(1)} m × ${rowTxt(ch, ch.radii[r.lk.ri], false)}` + (r.angUse!=null ? ` (${(r.bAng>0 && r.bAng < r.ang ? `มุมบนหน้าจอ ${r.bAng.toFixed(1)}°` : `มุมคำนวณ ${r.ang.toFixed(1)}°`)} ใช้แถวมุมที่ต่ำกว่า)` : "")) + ` = ${v}${ch.unit==="kg" ? " kg" : " ตัน × 1,000"}`; }
   else capExpr = (r.checks[0] && r.checks[0].meta) || "รอข้อมูล";
   m.cap = {expr:capExpr, val: r.cap>0 ? `${kg(r.cap)} kg` : "—"};
   m.pct = {expr: (r.gross>0 && r.cap>0) ? `${kg(r.gross)} ÷ ${kg(r.cap)} × 100` : "น้ำหนักรวม ÷ พิกัดยก × 100", val: r.pct!=null ? `${r.pct.toFixed(1)}%` : "—"};
@@ -3103,7 +3169,7 @@ function calcPageHTML(r, s, miniHead, foot, pageNo){
     if(r.chart){
       const t = chartTablePDF(r.chart, r.lk && r.lk.cap!=null ? r.lk : (r.lk||{}), showRange ? 17 : 30);
       tbl = t.html;
-      tblNote = `${r.capMode==="chart" ? "Load chart สาธิต (ใช้สอนเท่านั้น)" : esc(r.chart.name)}${r.chart.note?" · "+esc(r.chart.note):""} · แสดงเป็น kg${t.cut?" · แสดงเฉพาะแถวรอบรัศมีที่ใช้":""} · กรอบแดง = ช่องบูมและแถวรัศมีที่ใช้อ่านพิกัด`;
+      tblNote = `${r.capMode==="chart" ? "Load chart สาธิต (ใช้สอนเท่านั้น)" : esc(r.chart.name)}${r.chart.note?" · "+esc(r.chart.note):""} · แสดงเป็น kg${t.cut?" · แสดงเฉพาะแถวรอบ"+rowWord(r.chart)+"ที่ใช้":""} · กรอบแดง = ช่องบูมและแถว${rowWord(r.chart)}ที่ใช้อ่านพิกัด${chAngle(r.chart)?" (ใช้แถวมุมที่ต่ำกว่ามุมจริง)":""}`;
     } else if(r.manual){
       tbl = `<table class="plc narrow"><thead><tr><th>ทิศ</th><th>พิกัดที่กรอก (kg)</th></tr></thead><tbody>${[["ด้านหลัง (Over rear)", r.dirs.rear],["ด้านหน้า (Over front)", r.dirs.front],["ด้านข้าง (Over side)", r.dirs.side]].map(([k,v])=>`<tr class="${v>0 && v===r.cap?"r":""}"><th>${k}</th><td class="${v>0 && v===r.cap?"h":""}">${v>0?kg(v):"–"}</td></tr>`).join("")}</tbody></table>`;
       tblNote = "กรอกพิกัดเองจาก load chart จริง ระบบใช้ค่าต่ำสุด (กรอบแดง) · แนบสำเนา load chart ไว้กับแผน";
@@ -3584,7 +3650,7 @@ $("#pl-paste").addEventListener("click", async ()=>{
 let LIB = [];
 function loadLib(){ const l = LS.get(LIB_KEY); LIB = Array.isArray(l) ? l.filter(c=>c && c.id && Array.isArray(c.radii) && Array.isArray(c.cap)) : []; }
 function saveLib(){ if(!LS.set(LIB_KEY, LIB)) toast("บันทึกคลังไม่สำเร็จ พื้นที่เก็บข้อมูลเต็ม"); libSelKey = ""; }
-function libSnapshot(c){ return {id:c.id, name:c.name, kind:c.kind, unit:c.unit, note:c.note||"", source:c.source||"", booms:c.booms.slice(), radii:c.radii.slice(), cap:c.cap.map(r=>r.slice()), rev:c.updated||0}; }
+function libSnapshot(c){ return {id:c.id, name:c.name, kind:c.kind, unit:c.unit, axis:c.axis==="angle"?"angle":"radius", note:c.note||"", source:c.source||"", booms:c.booms.slice(), radii:c.radii.slice(), cap:c.cap.map(r=>r.slice()), rev:c.updated||0}; }
 let libSelKey = "";
 function renderLibSelect(){
   const kind = planKind(S), list = LIB.filter(c=>c.kind===kind);
@@ -3601,7 +3667,7 @@ function renderLibSelect(){
   const hint = $("#lib-hint");
   if(!cur) hint.textContent = list.length ? "เลือกรุ่นที่ใช้จริง ระบบจะอ่านพิกัดจากตารางให้" : "กด “จัดการคลัง” เพื่อเพิ่ม load chart ของรุ่นที่ใช้";
   else if(inLib && (inLib.updated||0)!==(cur.rev||0)) hint.innerHTML = `ตารางในคลังถูกแก้ไขหลังเลือก <button type="button" class="linkbtn" id="lib-refresh">ใช้ตารางล่าสุด</button>`;
-  else hint.textContent = `${KIND_TXT[cur.kind]||""} · ${cur.radii.length} รัศมี${cur.kind==="knuckle"?"":" × "+cur.booms.length+" บูม"} · ตารางเป็น${cur.unit==="kg"?" kg":"ตัน"}${inLib?"":" · ไม่มีรุ่นนี้ในคลังของเครื่องนี้ ใช้ตารางที่เก็บในแผน"}`;
+  else hint.textContent = `${KIND_TXT[cur.kind]||""} · ${cur.radii.length} ${rowWord(cur)}${cur.kind==="knuckle"?"":" × "+cur.booms.length+" บูม"} · ตารางเป็น${cur.unit==="kg"?" kg":"ตัน"}${inLib?"":" · ไม่มีรุ่นนี้ในคลังของเครื่องนี้ ใช้ตารางที่เก็บในแผน"}`;
 }
 function useLibCrane(id){
   const c = LIB.find(x=>x.id===id);
@@ -3619,8 +3685,9 @@ document.addEventListener("click", e=>{ if(e.target.id==="lib-refresh" && S.libC
 
 function cellNum(v){ const m = String(v==null?"":v).replace(/,/g,"").trim().match(/^-?\d+(?:\.\d+)?/); return m ? Number(m[0]) : NaN; }
 const isNullCell = v => { const t = String(v==null?"":v).trim(); return t==="" || /^[-–—x*]+$/i.test(t) || /^n\/?a$/i.test(t); };
-function parseChart(text, kind, unit){
+function parseChart(text, kind, unit, axis){
   const out = {booms:[], radii:[], cap:[], errors:[], warns:[]};
+  const ang = axis==="angle" && kind!=="knuckle", RW = ang ? "มุมบูม" : "รัศมี";
   const lines = String(text||"").replace(/\r/g,"").split("\n").filter(l=>l.trim()!=="");
   if(!lines.length){ out.errors.push("ยังไม่มีตาราง วางจาก Excel หรือพิมพ์ตามรูปแบบด้านบน"); return out; }
   const split = l => l.includes("\t") ? l.split("\t").map(x=>x.trim()) : l.trim().split(/[\s;]+/);
@@ -3645,7 +3712,7 @@ function parseChart(text, kind, unit){
     for(let i=1;i<out.booms.length;i++) if(!(out.booms[i] > out.booms[i-1])){ out.errors.push("ความยาวบูมในแถวแรกต้องเรียงจากน้อยไปมาก"); break; }
     rows.slice(1).forEach((row,i)=>{
       const rr = cellNum(row[0]);
-      if(!(rr>0)){ out.errors.push(`แถว ${i+2}: รัศมีไม่ถูกต้อง “${row[0]}”`); return; }
+      if(!(rr>0) || (ang && rr>90)){ out.errors.push(`แถว ${i+2}: ${RW}ไม่ถูกต้อง “${row[0]}”`); return; }
       const vals = [];
       for(let j=0;j<out.booms.length;j++){
         const v = row[j+1];
@@ -3657,11 +3724,14 @@ function parseChart(text, kind, unit){
       out.radii.push(rr); out.cap.push(vals);
     });
   }
-  if(!out.radii.length && !out.errors.length) out.errors.push("ยังไม่มีแถวรัศมี");
-  for(let i=1;i<out.radii.length;i++) if(!(out.radii[i] > out.radii[i-1])){ out.errors.push("รัศมีในคอลัมน์แรกต้องเรียงจากน้อยไปมาก และไม่ซ้ำ"); break; }
+  if(!out.radii.length && !out.errors.length) out.errors.push(`ยังไม่มีแถว${RW}`);
+  if(ang && out.radii.length > 1 && out.radii[0] > out.radii[out.radii.length-1]){   // angle charts are often printed high → low: store low → high
+    out.radii.reverse(); out.cap.reverse();
+  }
+  for(let i=1;i<out.radii.length;i++) if(!(out.radii[i] > out.radii[i-1])){ out.errors.push(ang ? "มุมบูมในคอลัมน์แรกต้องเรียงลำดับเดียว (มากไปน้อย หรือน้อยไปมาก) และไม่ซ้ำ" : "รัศมีในคอลัมน์แรกต้องเรียงจากน้อยไปมาก และไม่ซ้ำ"); break; }
   for(let j=0;j<out.booms.length;j++){ let prev = null;
     for(let i=0;i<out.cap.length;i++){ const v = out.cap[i][j]; if(v==null) continue;
-      if(prev!=null && v > prev*1.001){ out.warns.push(kind==="knuckle" ? `พิกัดที่รัศมี ${out.radii[i]} ม. มากกว่ารัศมีก่อนหน้า ตรวจตัวเลขอีกครั้ง` : `บูม ${out.booms[j]} ม.: พิกัดที่รัศมี ${out.radii[i]} ม. มากกว่ารัศมีก่อนหน้า ตรวจตัวเลขอีกครั้ง`); break; }
+      if(ang ? (prev!=null && v < prev*0.999) : (prev!=null && v > prev*1.001)){ out.warns.push(ang ? `บูม ${out.booms[j]} ม.: พิกัดที่มุม ${out.radii[i]}° น้อยกว่ามุมที่ต่ำกว่า ตรวจตัวเลขอีกครั้ง` : kind==="knuckle" ? `พิกัดที่รัศมี ${out.radii[i]} ม. มากกว่ารัศมีก่อนหน้า ตรวจตัวเลขอีกครั้ง` : `บูม ${out.booms[j]} ม.: พิกัดที่รัศมี ${out.radii[i]} ม. มากกว่ารัศมีก่อนหน้า ตรวจตัวเลขอีกครั้ง`); break; }
       prev = v; } }
   const all = out.cap.flat().filter(v=>v!=null);
   if(all.length){ const mx = Math.max(...all);
@@ -3672,7 +3742,7 @@ function parseChart(text, kind, unit){
 function chartToText(c){
   const f = v => v==null ? "-" : String(v);
   if(c.kind==="knuckle") return ["รัศมี\tพิกัด"].concat(c.radii.map((r,i)=>`${r}\t${f((c.cap[i]||[])[0])}`)).join("\n");
-  return [["รัศมี\\บูม"].concat(c.booms).join("\t")].concat(c.radii.map((r,i)=>[r].concat(c.booms.map((_,j)=>f((c.cap[i]||[])[j]))).join("\t"))).join("\n");
+  return [[(chAngle(c)?"มุม":"รัศมี")+"\\บูม"].concat(c.booms).join("\t")].concat(c.radii.map((r,i)=>[r].concat(c.booms.map((_,j)=>f((c.cap[i]||[])[j]))).join("\t"))).join("\n");
 }
 const TPL = {
   boom:"รัศมี\\บูม\t10.0\t15.2\t20.4\n3.0\t50.0\t38.0\t-\n4.0\t40.5\t35.5\t27.0\n5.0\t34.0\t31.0\t25.5\n6.0\t29.5\t27.0\t23.5",
@@ -3683,8 +3753,8 @@ function openLib(){ loadLib(); libView = {mode:"list"}; renderLibDlg(); openDlg(
 $("#btn-lib").addEventListener("click", openLib);
 $("#btn-lib2").addEventListener("click", openLib);
 function editState(c){
-  if(!c) return {_new:true, id:"lc"+uid(), name:"", kind: (S && S.craneType!=="overhead") ? planKind(S) : "mobile", unit:"t", weight:"", note:"", source:"", text:""};
-  return {_new:false, id:c.id, created:c.created, name:c.name, kind:c.kind, unit:c.unit, weight:c.weight||"", note:c.note||"", source:c.source||"", text:chartToText(c)};
+  if(!c) return {_new:true, id:"lc"+uid(), name:"", kind: (S && S.craneType!=="overhead") ? planKind(S) : "mobile", unit:"t", axis:"radius", weight:"", note:"", source:"", text:""};
+  return {_new:false, id:c.id, created:c.created, name:c.name, kind:c.kind, unit:c.unit, axis:c.axis==="angle"?"angle":"radius", weight:c.weight||"", note:c.note||"", source:c.source||"", text:chartToText(c)};
 }
 function renderLibDlg(){
   const body = $("#dl-body"), foot = $("#dl-foot");
@@ -3692,7 +3762,7 @@ function renderLibDlg(){
     $("#dl-title").textContent = "คลัง Load chart";
     const kind = planKind(S), canUse = !REVIEW && S.craneType!=="overhead";
     body.innerHTML = `<p class="subtle">บันทึก load chart ของปั้นจั่นที่ใช้ประจำ แล้วเลือกใช้ในแผนได้ทันที ตัวเลขต้องคัดลอกจาก load chart ของผู้ผลิตรุ่นนั้น ให้ตรงกับการตั้งปั้นจั่นจริง (การกางขา ตุ้มถ่วง) คลังเก็บในเบราว์เซอร์นี้ ส่งให้เพื่อนร่วมทีมได้ด้วยปุ่ม “ส่งออกคลัง”</p>` +
-      (LIB.length ? `<div class="plist">${LIB.map(c=>`<div class="libitem"><div class="li-main"><b>${esc(c.name)}</b><small>${esc(KIND_TXT[c.kind]||"")} · ${c.radii.length} รัศมี${c.kind==="knuckle"?"":" × "+c.booms.length+" บูม"} · ตาราง${c.unit==="kg"?" kg":"เป็นตัน"}${c.note?" · "+esc(c.note):""}</small>${c.source?`<small>แหล่งข้อมูล: ${esc(c.source)}</small>`:""}${canUse && c.kind===kind ? `<div><button type="button" class="btn sm primary" data-libuse="${esc(c.id)}" style="margin-top:6px">ใช้ในแผนนี้</button></div>`:""}</div><div class="pa"><button type="button" class="iconbtn" data-libedit="${esc(c.id)}" aria-label="แก้ไข ${esc(c.name)}" title="แก้ไข">${ICON.edit}</button><button type="button" class="iconbtn" data-libdup="${esc(c.id)}" aria-label="คัดลอก ${esc(c.name)}" title="คัดลอก">${ICON.dup}</button><button type="button" class="iconbtn danger" data-libdel="${esc(c.id)}" aria-label="ลบ ${esc(c.name)}" title="ลบ">${ICON.del}</button></div></div>`).join("")}</div>`
+      (LIB.length ? `<div class="plist">${LIB.map(c=>`<div class="libitem"><div class="li-main"><b>${esc(c.name)}</b><small>${esc(KIND_TXT[c.kind]||"")} · ${c.radii.length} ${rowWord(c)}${c.kind==="knuckle"?"":" × "+c.booms.length+" บูม"} · ตาราง${c.unit==="kg"?" kg":"เป็นตัน"}${c.note?" · "+esc(c.note):""}</small>${c.source?`<small>แหล่งข้อมูล: ${esc(c.source)}</small>`:""}${canUse && c.kind===kind ? `<div><button type="button" class="btn sm primary" data-libuse="${esc(c.id)}" style="margin-top:6px">ใช้ในแผนนี้</button></div>`:""}</div><div class="pa"><button type="button" class="iconbtn" data-libedit="${esc(c.id)}" aria-label="แก้ไข ${esc(c.name)}" title="แก้ไข">${ICON.edit}</button><button type="button" class="iconbtn" data-libdup="${esc(c.id)}" aria-label="คัดลอก ${esc(c.name)}" title="คัดลอก">${ICON.dup}</button><button type="button" class="iconbtn danger" data-libdel="${esc(c.id)}" aria-label="ลบ ${esc(c.name)}" title="ลบ">${ICON.del}</button></div></div>`).join("")}</div>`
         : `<div class="pempty">ยังไม่มี load chart ในคลัง<br>กด “เพิ่ม load chart” แล้ววางตารางจาก Excel หรือพิมพ์เอง</div>`);
     foot.innerHTML = `<button type="button" class="btn primary sm" id="lib-add">+ เพิ่ม load chart</button><span class="sp"></span><button type="button" class="btn sm" id="lib-export"${LIB.length?"":" disabled"}>ส่งออกคลัง</button><button type="button" class="btn sm" id="lib-import">นำเข้า</button>`;
     return;
@@ -3703,6 +3773,7 @@ function renderLibDlg(){
     <div class="edit-grid">
       <div class="field"><label for="le-name">ชื่อรุ่น / ปั้นจั่น</label><input type="text" id="le-name" value="${esc(c.name)}" placeholder="เช่น Tadano GR-600N"></div>
       <div class="field"><span class="lbl" id="le-kind-l">ชนิด</span><div class="seg" id="le-kind" role="group" aria-labelledby="le-kind-l"><button type="button" data-v="mobile">ปั้นจั่นเคลื่อนที่</button><button type="button" data-v="tele">BT บูมยืดตรง</button><button type="button" data-v="knuckle">BT บูมพับ</button></div></div>
+      <div class="field" id="le-axis-f"><span class="lbl" id="le-axis-l">แถวในตารางเป็น</span><div class="seg" id="le-axis" role="group" aria-labelledby="le-axis-l"><button type="button" data-v="radius">รัศมี (ม.)</button><button type="button" data-v="angle">มุมบูม (°)</button></div></div>
       <div class="field"><span class="lbl" id="le-unit-l">หน่วยในตาราง</span><div class="seg" id="le-unit" role="group" aria-labelledby="le-unit-l"><button type="button" data-v="t">ตัน</button><button type="button" data-v="kg">kg</button></div></div>
       <div class="field"><label for="le-w">น้ำหนักรถรวม (ถ้ามี)</label><div class="input"><input type="number" id="le-w" inputmode="decimal" min="0" value="${esc(c.weight)}"><span class="unit">kg</span></div></div>
       <div class="field"><label for="le-note">เงื่อนไขของตาราง</label><input type="text" id="le-note" value="${esc(c.note)}" placeholder="เช่น กางขาสุด · ตุ้มถ่วงเต็ม · 360°"></div>
@@ -3711,7 +3782,8 @@ function renderLibDlg(){
     <div class="field"><label for="le-text">ตาราง load chart</label>
       <p class="subtle" id="le-help"></p>
       <textarea class="lc-text" id="le-text" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
-      <div class="toolrow"><button type="button" class="btn sm" id="le-tpl">ใส่ตัวอย่างรูปแบบ</button></div>
+      <div class="toolrow"><button type="button" class="btn sm" id="le-pdf">นำเข้าจาก PDF</button><button type="button" class="btn sm" id="le-tpl">ใส่ตัวอย่างรูปแบบ</button></div>
+      <figure class="le-src" id="le-srcfig" hidden><div class="le-srcbox"><img id="le-srcimg" alt="ตารางต้นฉบับจาก PDF"></div><figcaption id="le-srccap"></figcaption></figure>
     </div>
     <ul class="msgs" id="le-msgs"></ul>
     <div class="chart-wrap" id="le-prev-wrap"><table class="lc" id="le-prev"></table></div>`;
@@ -3724,17 +3796,22 @@ function libPreview(){
   c.text = $("#le-text").value;
   $$("#le-kind button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===c.kind)));
   $$("#le-unit button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===c.unit)));
+  $$("#le-axis button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===c.axis)));
+  $("#le-axis-f").hidden = c.kind==="knuckle";
+  const ax = c.kind!=="knuckle" && c.axis==="angle";
+  if(c.srcImg){ $("#le-srcfig").hidden = false; $("#le-srcimg").src = c.srcImg; $("#le-srccap").textContent = `ต้นฉบับ: ${c.srcCap||""} · แตะภาพเพื่อขยาย · เทียบทุกช่องกับตารางด้านล่างก่อนบันทึก`; }
   $("#le-help").textContent = c.kind==="knuckle"
     ? "2 คอลัมน์: รัศมี (ม.) และพิกัดยก หนึ่งแถวต่อหนึ่งรัศมี รัศมีเรียงจากน้อยไปมาก คัดลอกจาก Excel แล้ววางได้เลย"
+    : ax ? "แถวแรก = ความยาวบูม · คอลัมน์แรก = มุมบูม (องศา เรียงมากไปน้อยหรือน้อยไปมากก็ได้) · ช่องที่ยกไม่ได้ใส่ - · ระบบใช้แถวมุมที่ต่ำกว่ามุมจริงเสมอ"
     : "แถวแรก = ความยาวบูม (ช่องแรกเว้นว่างหรือเขียนว่า รัศมี) · คอลัมน์แรก = รัศมี · ช่องที่ยกไม่ได้ใส่ - หรือเว้นว่าง · คัดลอกจาก Excel แล้ววางได้เลย ตัวเลขในตัวอย่างรูปแบบเป็นค่าสมมติ";
-  const out = parseChart(c.text, c.kind, c.unit);
+  const out = parseChart(c.text, c.kind, c.unit, ax ? "angle" : "radius");
   c.parsed = out;
   const ok = !out.errors.length;
   const msgs = out.errors.slice(0,6).map(t=>`<li data-tone="bad">${esc(t)}</li>`).concat(out.warns.slice(0,4).map(t=>`<li data-tone="warn">${esc(t)}</li>`));
-  if(ok) msgs.push(`<li data-tone="ok">อ่านได้ ${out.radii.length} รัศมี${c.kind==="knuckle"?"":" × "+out.booms.length+" บูม"} ตรวจกับ load chart ของผู้ผลิตอีกครั้งก่อนบันทึก</li>`);
+  if(ok) msgs.push(`<li data-tone="ok">อ่านได้ ${out.radii.length} ${ax?"มุมบูม":"รัศมี"}${c.kind==="knuckle"?"":" × "+out.booms.length+" บูม"} ตรวจกับ load chart ของผู้ผลิตอีกครั้งก่อนบันทึก</li>`);
   $("#le-msgs").innerHTML = msgs.join("");
   $("#le-prev-wrap").hidden = !ok;
-  if(ok) $("#le-prev").innerHTML = chartTableHTML({kind:c.kind, unit:c.unit, booms:out.booms, radii:out.radii, cap:out.cap});
+  if(ok) $("#le-prev").innerHTML = chartTableHTML({kind:c.kind, unit:c.unit, axis:ax?"angle":"radius", booms:out.booms, radii:out.radii, cap:out.cap});
   $("#le-save").disabled = !ok || !$("#le-name").value.trim();
 }
 $("#dlg-lib").addEventListener("input", e=>{
@@ -3756,6 +3833,9 @@ $("#dlg-lib").addEventListener("click", async e=>{
   if(t.id==="le-back"){ libView = {mode:"list"}; renderLibDlg(); return; }
   if((b = by("#le-kind button"))){ libView.edit.kind = b.dataset.v; libPreview(); return; }
   if((b = by("#le-unit button"))){ libView.edit.unit = b.dataset.v; libPreview(); return; }
+  if((b = by("#le-axis button"))){ libView.edit.axis = b.dataset.v; libPreview(); return; }
+  if(t.id==="le-pdf"){ openPdfImport(); return; }
+  if(t.id==="le-srcimg"){ $("#le-srcfig").classList.toggle("zoom"); return; }
   if(t.id==="le-tpl"){
     const ta = $("#le-text");
     if(ta.value.trim()){ const ok = await openModal({title:"แทนที่ตาราง", text:"ตารางที่พิมพ์ไว้จะถูกแทนด้วยตัวอย่างรูปแบบ", okText:"แทนที่"}); if(!ok) return; }
@@ -3770,7 +3850,7 @@ $("#dlg-lib").addEventListener("click", async e=>{
     const name = $("#le-name").value.trim();
     if(!name || !out || out.errors.length) return;
     const now = Date.now();
-    const rec = {id:c.id, name, kind:c.kind, unit:c.unit, weight:$("#le-w").value.trim(), note:$("#le-note").value.trim(), source:$("#le-src").value.trim(),
+    const rec = {id:c.id, name, kind:c.kind, unit:c.unit, axis:(c.kind!=="knuckle" && c.axis==="angle")?"angle":"radius", weight:$("#le-w").value.trim(), note:$("#le-note").value.trim(), source:$("#le-src").value.trim(),
                  booms:out.booms, radii:out.radii, cap:out.cap, created:c.created||now, updated:now};
     const i = LIB.findIndex(x=>x.id===rec.id);
     if(i<0) LIB.push(rec); else LIB[i] = rec;
@@ -3780,6 +3860,249 @@ $("#dlg-lib").addEventListener("click", async e=>{
     libView = {mode:"list"}; renderLibDlg();
     toast(autoUse ? "บันทึกแล้ว และเลือกใช้ในแผนนี้" : "บันทึก load chart แล้ว");
   }
+});
+
+/* ================= Load chart from a manufacturer PDF ================= */
+// pdf.js reads the numbers with their positions on the page, so a blank cell stays blank instead of shifting the numbers to the left
+// the way copy-paste does. Works only for PDFs with real text; a scanned page has no numbers to read.
+const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+let pdfjsP = null;
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(!pdfjsP) pdfjsP = new Promise((res, rej)=>{
+    const sc = document.createElement("script"); sc.src = PDFJS_URL; sc.async = true;
+    sc.onload = ()=>{ const L = window.pdfjsLib; if(!L){ pdfjsP = null; return rej(new Error("load")); } L.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; res(L); };
+    sc.onerror = ()=>{ pdfjsP = null; sc.remove(); rej(new Error("load")); };
+    document.head.appendChild(sc);
+  });
+  return pdfjsP;
+}
+const PDI = {doc:null, name:"", page:1, pages:0, pg:null, vp:null, toks:[], sel:null, drag:null, res:null, keyCol:null, flip:false, seq:0};
+function pdiMsg(text, tone){ const m = $("#dpf-msg"); m.textContent = text; m.dataset.tone = tone||""; }
+function openPdfImport(){
+  PDI.res = null; PDI.sel = null; PDI.keyCol = null; PDI.flip = false;
+  renderPdiResult(); updPdiSel(); pdiButtons();
+  openDlg("dlg-pdf");
+  if(!PDI.doc) $("#dpf-in").click();
+}
+function pdiButtons(){
+  $("#dpf-tools").hidden = !PDI.doc;
+  $("#dpf-all").disabled = !PDI.vp; $("#dpf-read").disabled = !PDI.vp || !PDI.sel;
+  $("#dpf-use").disabled = !(PDI.res && PDI.res.ok);
+  $("#dpf-nav").hidden = !PDI.doc;
+  $("#dpf-prev").disabled = PDI.page<=1; $("#dpf-next").disabled = PDI.page>=PDI.pages;
+}
+$("#dpf-file").addEventListener("click", ()=>$("#dpf-in").click());
+$("#dpf-in").addEventListener("change", async e=>{
+  const f = e.target.files && e.target.files[0]; e.target.value = ""; if(!f) return;
+  pdiMsg("กำลังเปิดไฟล์…");
+  try{
+    const L = await loadPdfJs();
+    const data = new Uint8Array(await f.arrayBuffer());
+    if(PDI.doc){ try{ PDI.doc.destroy(); }catch(_){} PDI.doc = null; }
+    PDI.doc = await L.getDocument({data, isEvalSupported:false}).promise;
+    PDI.name = f.name; PDI.pages = PDI.doc.numPages; PDI.page = 1;
+    $("#dpf-name").textContent = f.name;
+    await showPdiPage();
+  }catch(err){
+    pdiMsg(err && err.message==="load" ? "โหลดตัวอ่าน PDF ไม่ได้ ต้องต่ออินเทอร์เน็ตแล้วลองใหม่" : err && err.name==="PasswordException" ? "ไฟล์นี้มีรหัสผ่าน เปิดไม่ได้" : "เปิดไฟล์นี้ไม่ได้ ตรวจว่าเป็นไฟล์ PDF", "bad");
+  }
+  pdiButtons();
+});
+$("#dpf-prev").addEventListener("click", ()=>{ if(PDI.page>1){ PDI.page--; showPdiPage(); } });
+$("#dpf-next").addEventListener("click", ()=>{ if(PDI.page<PDI.pages){ PDI.page++; showPdiPage(); } });
+$("#dpf-pg").addEventListener("change", e=>{ const n = Math.round(+e.target.value); if(PDI.doc && n>=1 && n<=PDI.pages && n!==PDI.page){ PDI.page = n; showPdiPage(); } else e.target.value = PDI.page; });
+async function showPdiPage(){
+  const seq = ++PDI.seq;
+  PDI.sel = null; PDI.res = null; PDI.keyCol = null; PDI.flip = false; PDI.vp = null; PDI.toks = []; updPdiSel(); renderPdiResult(); pdiButtons();
+  const page = await PDI.doc.getPage(PDI.page); if(seq!==PDI.seq) return;
+  const stage = $("#dpf-stage"); stage.hidden = false;
+  const body = stage.parentElement, bw = Math.max(260, body.clientWidth - 34), bh = Math.max(320, window.innerHeight*0.62);
+  const base = page.getViewport({scale:1});
+  const vp = page.getViewport({scale: Math.min(bw/base.width, bh/base.height)});
+  const dpr = Math.min(2, window.devicePixelRatio||1), cv = $("#dpf-canvas");
+  cv.width = Math.round(vp.width*dpr); cv.height = Math.round(vp.height*dpr); cv.style.width = vp.width+"px"; cv.style.height = vp.height+"px";
+  await page.render({canvasContext:cv.getContext("2d"), viewport:vp, transform: dpr!==1 ? [dpr,0,0,dpr,0,0] : null}).promise; if(seq!==PDI.seq) return;
+  PDI.pg = page; PDI.vp = vp;
+  PDI.toks = pdfTokens(await page.getTextContent(), vp, window.pdfjsLib.Util);
+  $("#dpf-pageno").textContent = `/ ${PDI.pages}`; $("#dpf-pg").value = PDI.page; $("#dpf-pg").max = PDI.pages;
+  const nums = PDI.toks.filter(t=>t.num!=null).length;
+  if(nums < 6) pdiMsg("หน้านี้ไม่มีตัวเลขที่อ่านได้ อาจเป็นภาพสแกน ให้ไปหน้าอื่น หรือพิมพ์ตารางเอง", "bad");
+  else pdiMsg("ลากกรอบรอบตาราง load chart ให้รวมแถวความยาวบูมด้านบน และคอลัมน์รัศมีหรือมุมบูมด้านซ้าย ระบบจะอ่านให้ทันที ถ้าหน้านี้มีตารางเดียวกด “อ่านทั้งหน้า” ได้เลย");
+  pdiButtons();
+}
+// Every word on the page with its centre point in viewport pixels. Runs of text are split into words by their share of the run width.
+function pdfTokens(tc, vp, U){
+  const out = [];
+  for(const it of tc.items){
+    const str = it.str; if(!str || !str.trim()) continue;
+    const m = U.transform(vp.transform, it.transform);
+    const len = Math.hypot(m[0], m[1]); if(!len) continue;
+    const ux = m[0]/len, uy = m[1]/len;
+    if(ux < 0.8) continue;                                   // sideways or upside-down text: axis titles, not table cells
+    const fh = Math.hypot(m[2], m[3]) || 8, w = (it.width||0) * vp.scale;
+    const re = /\S+/g; let mm;
+    while((mm = re.exec(str))){
+      const f = (mm.index + mm[0].length/2) / str.length;
+      // a table cell is a bare number; footnote markers (*, brackets) and a degree sign are allowed, "85%" or "1:" are not
+      const n = /^\(?\d[\d,]*(?:\.\d+)?\)?\*{0,2}°?$/.test(mm[0]) ? cellNum(mm[0].replace(/^\(/,"")) : NaN;
+      out.push({t:mm[0], x:m[4] + ux*w*f, y:m[5] + uy*w*f - fh*0.35, h:fh, num: Number.isFinite(n) ? n : null, blank: isNullCell(mm[0])});
+    }
+  }
+  return out;
+}
+const stagePt = e => { const r = $("#dpf-canvas").getBoundingClientRect(); return {x: Math.max(0, Math.min(r.width, e.clientX - r.left)), y: Math.max(0, Math.min(r.height, e.clientY - r.top))}; };
+function updPdiSel(){
+  const el = $("#dpf-sel"), s = PDI.sel;
+  el.hidden = !s; if(!s) return;
+  Object.assign(el.style, {left:s.x+"px", top:s.y+"px", width:s.w+"px", height:s.h+"px"});
+}
+$("#dpf-stage").addEventListener("pointerdown", e=>{
+  if(!PDI.vp || e.button>0) return;
+  const p = stagePt(e); PDI.drag = {x0:p.x, y0:p.y}; PDI.sel = {x:p.x, y:p.y, w:0, h:0};
+  try{ $("#dpf-stage").setPointerCapture(e.pointerId); }catch(_){}
+  updPdiSel(); e.preventDefault();
+});
+$("#dpf-stage").addEventListener("pointermove", e=>{
+  if(!PDI.drag) return; const p = stagePt(e), d = PDI.drag;
+  PDI.sel = {x:Math.min(d.x0,p.x), y:Math.min(d.y0,p.y), w:Math.abs(p.x-d.x0), h:Math.abs(p.y-d.y0)}; updPdiSel();
+});
+const endDrag = ()=>{ if(!PDI.drag) return; PDI.drag = null; if(PDI.sel && (PDI.sel.w<10 || PDI.sel.h<10)) PDI.sel = null; updPdiSel(); if(PDI.sel){ PDI.keyCol = null; PDI.flip = false; readPdiTable(); showPdiRes(); } pdiButtons(); };
+// on a phone the result sits under the page: bring it into view
+function showPdiRes(){ const b = $("#dpf-res"), r = b.getBoundingClientRect(); if(r.top > window.innerHeight*0.7) b.scrollIntoView({block:"start", behavior: reduceMotion ? "auto" : "smooth"}); }
+$("#dpf-stage").addEventListener("pointerup", endDrag);
+$("#dpf-stage").addEventListener("pointercancel", endDrag);
+$("#dpf-all").addEventListener("click", ()=>{ if(!PDI.vp) return; PDI.sel = null; PDI.keyCol = null; PDI.flip = false; updPdiSel(); readPdiTable(); showPdiRes(); });
+$("#dpf-read").addEventListener("click", ()=>readPdiTable());
+
+// Rebuild the table from word positions: rows by height on the page, columns under the boom-length header.
+function readPdiTable(){
+  if(!PDI.vp) return;
+  const kind = libView.edit ? libView.edit.kind : "mobile";
+  const sel = PDI.sel || {x:0, y:0, w:PDI.vp.width, h:PDI.vp.height};
+  const toks = PDI.toks.filter(t=>t.x>=sel.x && t.x<=sel.x+sel.w && t.y>=sel.y && t.y<=sel.y+sel.h).sort((a,b)=>a.y-b.y);
+  const rows = [];
+  toks.forEach(t=>{ const r = rows[rows.length-1];
+    if(r && Math.abs(t.y - r.y) <= Math.max(2, Math.min(r.h, t.h)*0.45)){ r.t.push(t); r.y += (t.y - r.y)/r.t.length; }
+    else rows.push({y:t.y, h:t.h, t:[t]}); });
+  rows.forEach(r=>r.t.sort((a,b)=>a.x-b.x));
+  const nums = r => r.t.filter(t=>t.num!=null && !t.blank);
+  const res = {kind, ok:false, keys:[], header:[], cap:[], ys:[], skipped:0, leftCols:[], angleHint:false, unitHint:"", imperial:false, msg:""};
+  // units are usually printed outside the table, so look at the whole page
+  const pageWords = PDI.toks.filter(t=>t.num==null).map(t=>t.t).join(" ");
+  if(/1\s*,?000\s*kg|x\s*1\s*,?000|×\s*1\s*,?000|\bton(?:ne)?s?\b|\(t\)|\[t\]|ตัน|metric\s*t/i.test(pageWords)) res.unitHint = "t";
+  else if(/\bkg\b|กก\./i.test(pageWords)) res.unitHint = "kg";
+  res.imperial = /\blbs?\b|pounds?|\bfeet\b|\bft\b/i.test(pageWords);
+  if(kind==="knuckle"){
+    let pairs = [];
+    const nr = rows.map(nums).filter(n=>n.length>=2);
+    if(nr.length>=3) pairs = nr.map(n=>[n[0].num, n[1].num]);
+    else if(nr.length===2 && nr[0].length>=3) pairs = nr[0].map(t=>{ const q = nr[1].reduce((a,b)=>Math.abs(b.x-t.x)<Math.abs(a.x-t.x)?b:a); return [t.num, q.num]; });
+    res.keys = pairs.map(p=>p[0]); res.cap = pairs.map(p=>[p[1]]); res.header = [0];
+    res.ok = pairs.length>=2; if(!res.ok) res.msg = "ไม่พบคู่รัศมีกับพิกัดยกในกรอบ ลองลากกรอบใหม่ให้ครอบเฉพาะตาราง";
+  } else {
+    const incr = a => a.every((t,i)=> i===0 || t.num > a[i-1].num);
+    // the boom-length row: increasing numbers with rows of numbers lined up underneath it
+    const aligned = (n, q) => { const g = n.slice(1).map((t,i)=>t.x - n[i].x), tl = Math.max(6, Math.min(...g)*0.45);
+      return n.filter(h=>q.t.some(t=>t.num!=null && Math.abs(t.x - h.x) <= tl)).length >= Math.max(1, Math.ceil(n.length/2)); };
+    const hi = rows.findIndex((r,i)=>{ const n = nums(r); return n.length>=2 && incr(n) && rows.slice(i+1, i+6).filter(q=>aligned(n,q)).length >= 2; });
+    if(hi<0){ res.msg = "ไม่พบแถวความยาวบูม (ตัวเลขเรียงจากน้อยไปมากด้านบนตาราง) ลากกรอบให้รวมหัวตาราง ถ้าหน้านี้มีหลายตาราง ให้ลากกรอบรอบตารางเดียว"; PDI.res = res; renderPdiResult(); pdiButtons(); return; }
+    const head = nums(rows[hi]);
+    const gaps = head.slice(1).map((t,i)=>t.x - head[i].x).sort((a,b)=>a-b);
+    const sp = gaps.length ? gaps[Math.floor(gaps.length/2)] : 40, tol = sp*0.5;
+    const x0 = head[0].x - tol;
+    res.header = head.map(t=>t.num);
+    // the column(s) left of the first boom column hold the row values: radius, boom angle, or both
+    const lefts = [];
+    rows.slice(hi+1).forEach(r=>r.t.forEach(t=>{ if(t.x < x0 && t.num!=null) lefts.push(t); }));
+    lefts.sort((a,b)=>a.x-b.x);
+    const cl = [];
+    lefts.forEach(t=>{ const c = cl.find(c=>Math.abs(c.x - t.x) <= Math.max(tol, 12)); if(c){ c.n++; c.x += (t.x-c.x)/c.n; if(/°/.test(t.t)) c.deg = true; if(c.sample.length<4) c.sample.push(t.t); } else cl.push({x:t.x, n:1, deg:/°/.test(t.t), sample:[t.t]}); });
+    const minN = Math.max(2, Math.floor(rows.length*0.25));
+    res.leftCols = cl.filter(c=>c.n>=minN).sort((a,b)=>a.x-b.x);
+    if(!res.leftCols.length){ res.msg = "ไม่พบคอลัมน์รัศมีหรือมุมบูมทางซ้ายของตาราง ลองลากกรอบให้รวมคอลัมน์ซ้ายสุด"; PDI.res = res; renderPdiResult(); pdiButtons(); return; }
+    // default row key: a column printed with ° (boom angle), otherwise the column right next to the table
+    if(PDI.keyCol==null || PDI.keyCol >= res.leftCols.length){ const d = res.leftCols.findIndex(c=>c.deg); res.keyIdx = d>=0 ? d : res.leftCols.length-1; }
+    else res.keyIdx = PDI.keyCol;
+    const kc = res.leftCols[res.keyIdx];
+    const words = toks.filter(t=>t.num==null && !t.blank).map(t=>t.t).join(" ");
+    res.angleHint = kc.deg || (/angle|deg|องศา|มุม/i.test(words) && !/radius|รัศมี/i.test(words));
+    rows.slice(hi+1).forEach(r=>{
+      const key = r.t.find(t=>t.num!=null && Math.abs(t.x - kc.x) <= Math.max(tol, 12));
+      if(!key) return;
+      const vals = res.header.map(()=>null); let any = false;
+      r.t.forEach(t=>{ if(t.x < x0) return;
+        let j = -1, best = tol; head.forEach((h,k)=>{ const d = Math.abs(t.x - h.x); if(d <= best){ best = d; j = k; } });
+        if(j<0){ if(t.num!=null) res.skipped++; return; }
+        if(t.num!=null && !t.blank){ if(vals[j]==null){ vals[j] = t.num; any = true; } else res.skipped++; }
+      });
+      if(any){ res.keys.push(key.num); res.cap.push(vals); res.ys.push(r.y); }
+    });
+    // footnotes under the table often contain numbers too: cut the table at the first gap much larger than the row spacing
+    if(res.ys.length>3){
+      const g = res.ys.slice(1).map((y,i)=>y - res.ys[i]), med = g.slice().sort((a,b)=>a-b)[Math.floor(g.length/2)];
+      const cut = g.findIndex(d=>d > med*2.4);
+      if(cut>=1){ res.keys.length = res.cap.length = cut+1; }
+    }
+    if(PDI.flip && res.keys.length){
+      const k = res.keys, h = res.header, c = res.cap;
+      res.header = k; res.keys = h; res.cap = h.map((_,j)=>k.map((_,i)=>c[i][j]));
+    }
+    res.ok = res.keys.length>=2 && res.header.length>=1;
+    if(!res.ok) res.msg = "อ่านได้น้อยเกินไป ลองลากกรอบใหม่ให้ครอบทั้งตาราง";
+  }
+  PDI.res = res; renderPdiResult(); pdiButtons();
+}
+function pdiText(res){
+  const f = v => v==null ? "-" : String(v);
+  if(res.kind==="knuckle") return ["รัศมี\tพิกัด"].concat(res.keys.map((k,i)=>`${k}\t${f(res.cap[i][0])}`)).join("\n");
+  return [[(res.angleHint?"มุม":"รัศมี")+"\\บูม"].concat(res.header).join("\t")].concat(res.keys.map((k,i)=>[k].concat(res.cap[i].map(f)).join("\t"))).join("\n");
+}
+function renderPdiResult(){
+  const box = $("#dpf-res"), res = PDI.res;
+  if(!res){ box.innerHTML = ""; return; }
+  if(!res.ok){ box.innerHTML = `<p class="dpf-msg" data-tone="bad">${esc(res.msg)}</p>`; return; }
+  const kn = res.kind==="knuckle";
+  const filled = res.cap.flat().filter(v=>v!=null).length, total = res.cap.length*(kn?1:res.header.length);
+  let keys = "";
+  if(!kn){
+    keys = `<div class="dpf-keys">${res.leftCols.length>1 ? `<span>แถวใช้ค่าจาก</span>${res.leftCols.map((c,i)=>`<button type="button" class="btn sm" data-pdikey="${i}" aria-pressed="${i===res.keyIdx}">${esc(c.sample.slice(0,3).join(", "))}…</button>`).join("")}` : ""}
+      <button type="button" class="btn sm" id="dpf-flip" aria-pressed="${PDI.flip}">สลับแถว / คอลัมน์</button><span class="subtle">ใช้เมื่อตารางวางรัศมีไว้ด้านบน และความยาวบูมไว้ด้านซ้าย</span></div>`;
+  }
+  const th = kn ? `<th>รัศมี</th><th>พิกัด</th>` : `<th>${res.angleHint?"มุม":"แถว"} \\ บูม</th>${res.header.map(h=>`<th>${h}</th>`).join("")}`;
+  const tb = res.keys.map((k,i)=>`<tr><th>${k}${res.angleHint&&!kn?"°":""}</th>${res.cap[i].map(v=>`<td class="${v==null?"na":""}">${v==null?"–":v}</td>`).join("")}</tr>`).join("");
+  box.innerHTML = `${keys}
+    <p class="dpf-msg" data-tone="ok">อ่านได้ ${res.keys.length} แถว${kn?"":" × "+res.header.length+" บูม"} · มีตัวเลข ${filled} จาก ${total} ช่อง${res.skipped?` · ข้ามตัวเลข ${res.skipped} ตัวที่ไม่อยู่ใต้หัวคอลัมน์`:""}${res.angleHint&&!kn?" · คอลัมน์ซ้ายดูเป็นมุมบูม ระบบจะตั้งแถวเป็นมุมบูมให้":""}</p>
+    ${res.imperial?`<p class="dpf-msg" data-tone="bad">หน้านี้มีคำว่า lb หรือ ft ตารางอาจเป็นหน่วยปอนด์และฟุต โปรแกรมใช้ตันหรือ kg กับเมตรเท่านั้น ให้ใช้หน้าตารางหน่วยเมตริกของผู้ผลิต</p>`:""}
+    ${res.unitHint?`<p class="dpf-msg">หน่วยที่พบในหน้านี้: ${res.unitHint==="t"?"ตัน":"kg"} ระบบจะตั้งหน่วยตารางให้ ตรวจอีกครั้งในหน้าแก้ไข</p>`:""}
+    <p class="dpf-msg">ตรวจทุกช่องกับต้นฉบับด้านบน ช่องที่ไม่มีพิกัดแสดงเป็น – ถ้าถูกต้องกด “ใช้ตารางนี้” แล้วตรวจอีกครั้งในหน้าแก้ไข load chart</p>
+    <div class="chart-wrap"><table class="lc">${`<thead><tr>${th}</tr></thead><tbody>${tb}</tbody>`}</table></div>`;
+}
+$("#dpf-res").addEventListener("click", e=>{
+  const b = e.target.closest("[data-pdikey]"); if(b){ PDI.keyCol = +b.dataset.pdikey; readPdiTable(); return; }
+  if(e.target.closest("#dpf-flip")){ PDI.flip = !PDI.flip; readPdiTable(); }
+});
+// A sharper copy of the selected area, kept beside the table in the editor so each number can be checked against the original.
+async function pdiCrop(){
+  try{
+    const sel = PDI.sel || {x:0, y:0, w:PDI.vp.width, h:PDI.vp.height};
+    const k = Math.min(3, 1400/Math.max(1, sel.w)), vp = PDI.pg.getViewport({scale: PDI.vp.scale*k});
+    const cv = document.createElement("canvas"); cv.width = Math.round(sel.w*k); cv.height = Math.round(sel.h*k);
+    await PDI.pg.render({canvasContext:cv.getContext("2d"), viewport:vp, transform:[1,0,0,1,-sel.x*k,-sel.y*k]}).promise;
+    return cv.toDataURL("image/jpeg", 0.88);
+  }catch(_){ return null; }
+}
+$("#dpf-use").addEventListener("click", async ()=>{
+  const res = PDI.res, c = libView.edit; if(!res || !res.ok || !c) return;
+  const text = pdiText(res);
+  if(c.kind!=="knuckle") c.axis = res.angleHint ? "angle" : (c.axis||"radius");
+  if(res.unitHint) c.unit = res.unitHint;
+  c.text = text; $("#le-text").value = text;
+  const src = $("#le-src"); if(src && !src.value.trim()) src.value = `${PDI.name} หน้า ${PDI.page}`;
+  c.srcImg = await pdiCrop(); c.srcCap = `${PDI.name} หน้า ${PDI.page}`;
+  closeDlg("dlg-pdf"); libPreview();
+  toast("นำตารางมาใส่แล้ว ตรวจกับต้นฉบับทุกช่องก่อนบันทึก");
 });
 
 /* ================= Site photos ================= */
@@ -4098,7 +4421,7 @@ function renderReviewForm(pl){
 const linkInHash = () => { const m = location.hash.match(/^#lp=([zj][A-Za-z0-9_-]+)/); return m ? m[1] : null; };
 const clearHash = () => { try{ history.replaceState(null, "", location.pathname); }catch(e){} };
 window.addEventListener("hashchange", ()=>{ if(linkInHash()) location.reload(); });
-window.__lp = { compute:()=>compute(S), sheetHTML, get S(){return S;}, get R(){return R;}, get IDX(){return IDX;}, get PID(){return PID;}, get LIB(){return LIB;},
+window.__lp = { compute:()=>compute(S), sheetHTML, get S(){return S;}, get R(){return R;}, get IDX(){return IDX;}, get PID(){return PID;}, get LIB(){return LIB;}, get PDI(){return PDI;},
   planHash, packStr, unpackStr, makeRequestLink, receiveSig, openPlan, addPlan, flushSave, parseChart, useLibCrane, loadLib, renderPhotos, render:()=>render() };
 (async ()=>{
   loadLib();
